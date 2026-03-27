@@ -4,16 +4,14 @@ import { sites } from "@/lib/db/schema";
 import { hashKey } from "@/lib/keys";
 import { getLocalSiteByAdminHash } from "@/lib/local-store";
 import { setAdminKey } from "@/lib/session";
+import { apiError } from "@/lib/errors";
 import { eq } from "drizzle-orm";
 
 export async function POST(request: Request) {
   try {
     const body = await request.json().catch(() => null);
     if (!body?.key || !body.key.startsWith("pl_admin_")) {
-      return NextResponse.json(
-        { error: { message: "Invalid admin key format" } },
-        { status: 400 }
-      );
+      return apiError("VALIDATION_ERROR", "Invalid admin key format");
     }
 
     const hashed = hashKey(body.key);
@@ -32,10 +30,7 @@ export async function POST(request: Request) {
     }
 
     if (!site) {
-      return NextResponse.json(
-        { error: { message: "Admin key not found" } },
-        { status: 401 }
-      );
+      return apiError("UNAUTHORIZED", "Admin key not found");
     }
 
     await setAdminKey(body.key);
@@ -43,9 +38,6 @@ export async function POST(request: Request) {
     return NextResponse.json({ success: true });
   } catch (error) {
     console.error("Login route failed:", error);
-    return NextResponse.json(
-      { error: { message: "Could not reach the database. Please try again." } },
-      { status: 500 }
-    );
+    return apiError("INTERNAL_ERROR", "Could not reach the database. Please try again.");
   }
 }

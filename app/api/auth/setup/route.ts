@@ -8,29 +8,22 @@ import {
   hashKey,
 } from "@/lib/keys";
 import { getLocalSiteBySlug, insertLocalSite } from "@/lib/local-store";
+import { apiError } from "@/lib/errors";
 import { eq } from "drizzle-orm";
 
 export async function POST(request: Request) {
   try {
     const body = await request.json().catch(() => null);
     if (!body?.name || !body?.slug || !body?.domain) {
-      return NextResponse.json(
-        { error: { message: "Name, slug, and domain are required" } },
-        { status: 400 }
-      );
+      return apiError("VALIDATION_ERROR", "Name, slug, and domain are required");
     }
 
     const { name, slug, domain } = body;
 
     if (!/^[a-z0-9-]+$/.test(slug) || slug.length < 3) {
-      return NextResponse.json(
-        {
-          error: {
-            message:
-              "Slug must be at least 3 chars, lowercase letters, numbers, and hyphens only",
-          },
-        },
-        { status: 400 }
+      return apiError(
+        "VALIDATION_ERROR",
+        "Slug must be at least 3 chars, lowercase letters, numbers, and hyphens only"
       );
     }
 
@@ -47,10 +40,7 @@ export async function POST(request: Request) {
     }
 
     if (existing.length > 0) {
-      return NextResponse.json(
-        { error: { message: `Slug "${slug}" is already taken` } },
-        { status: 400 }
-      );
+      return apiError("VALIDATION_ERROR", `Slug "${slug}" is already taken`);
     }
 
     const id = generateSiteId();
@@ -94,14 +84,9 @@ export async function POST(request: Request) {
     );
   } catch (error) {
     console.error("Setup route failed:", error);
-    return NextResponse.json(
-      {
-        error: {
-          message:
-            "Could not connect to the database. Verify DATABASE_URL and restart the dev server.",
-        },
-      },
-      { status: 500 }
+    return apiError(
+      "INTERNAL_ERROR",
+      "Could not connect to the database. Verify DATABASE_URL and restart the dev server."
     );
   }
 }
