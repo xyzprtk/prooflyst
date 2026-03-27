@@ -53,21 +53,20 @@ export async function authenticateAdmin(
 
   const hashedKey = hashKey(key);
 
-  try {
-    const [site] = await db
+  // Try database first - use allSettled to never throw
+  const [dbResult] = await Promise.allSettled([
+    db
       .select()
       .from(sites)
       .where(eq(sites.adminKey, hashedKey))
-      .limit(1);
+      .limit(1)
+  ]);
 
-    if (site) {
-      return { success: true, site };
-    }
-  } catch {
-    // Database unavailable, fallback to local-store
+  if (dbResult.status === "fulfilled" && dbResult.value.length > 0) {
+    return { success: true, site: dbResult.value[0] };
   }
 
-  // Try local-store fallback
+  // Fall back to local store
   const localSite = await getLocalSiteByAdminHash(hashedKey);
   if (localSite) {
     return { success: true, site: localSiteToSite(localSite) };
@@ -88,28 +87,28 @@ export async function authenticatePublicKey(
     };
   }
 
-  try {
-    const [site] = await db
+  // Try database first - use allSettled to never throw
+  const [dbResult] = await Promise.allSettled([
+    db
       .select()
       .from(sites)
       .where(eq(sites.id, siteId))
-      .limit(1);
+      .limit(1)
+  ]);
 
-    if (site) {
-      if (site.publicKey !== publicKey) {
-        return {
-          success: false,
-          error: "Public key does not match site",
-          status: 403,
-        };
-      }
-      return { success: true, site };
+  if (dbResult.status === "fulfilled" && dbResult.value.length > 0) {
+    const site = dbResult.value[0];
+    if (site.publicKey !== publicKey) {
+      return {
+        success: false,
+        error: "Public key does not match site",
+        status: 403,
+      };
     }
-  } catch {
-    // Database unavailable, fallback to local-store
+    return { success: true, site };
   }
 
-  // Try local-store fallback
+  // Fall back to local store
   const { getLocalSiteById } = await import("./local-store");
   const localSite = await getLocalSiteById(siteId);
   

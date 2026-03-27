@@ -5,6 +5,7 @@ import { db } from "@/lib/db";
 import { sites } from "@/lib/db/schema";
 import { getAdminKey } from "@/lib/session";
 import { hashKey } from "@/lib/keys";
+import { getLocalSiteById } from "@/lib/local-store";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 export default async function SiteSettingsPage({
@@ -19,11 +20,38 @@ export default async function SiteSettingsPage({
     redirect("/dashboard/login");
   }
 
-  const [site] = await db
-    .select()
-    .from(sites)
-    .where(and(eq(sites.id, siteId), eq(sites.adminKey, hashKey(adminKey))))
-    .limit(1);
+  const adminHash = hashKey(adminKey);
+  
+  // Try database first - use allSettled to never throw
+  const [dbResult] = await Promise.allSettled([
+    db
+      .select()
+      .from(sites)
+      .where(and(eq(sites.id, siteId), eq(sites.adminKey, adminHash)))
+      .limit(1)
+  ]);
+
+  let site = dbResult.status === "fulfilled" && dbResult.value.length > 0 
+    ? dbResult.value[0] 
+    : undefined;
+
+  // Fall back to local store
+  if (!site) {
+    const local = await getLocalSiteById(siteId);
+    if (local && local.adminKey === adminHash) {
+      site = {
+        id: local.id,
+        slug: local.slug,
+        name: local.name,
+        domain: local.domain,
+        adminKey: local.adminKey,
+        publicKey: local.publicKey,
+        webhookUrl: null,
+        branding: null,
+        createdAt: new Date(local.createdAt),
+      };
+    }
+  }
 
   if (!site) {
     notFound();
