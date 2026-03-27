@@ -60,6 +60,13 @@ export async function getLocalSiteByAdminHash(
   return store.sites.find((site) => site.adminKey === adminHash);
 }
 
+export async function getLocalSiteById(
+  id: string
+): Promise<LocalSite | undefined> {
+  const store = await readStore();
+  return store.sites.find((site) => site.id === id);
+}
+
 export async function insertLocalSite(site: LocalSite): Promise<void> {
   const store = await readStore();
   const existing = store.sites.find((item) => item.id === site.id);
