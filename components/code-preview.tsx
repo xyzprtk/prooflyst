@@ -1,6 +1,5 @@
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
-import { CheckCircle2 } from "lucide-react";
 
 export function CodePreviewSection() {
   return (
@@ -9,46 +8,18 @@ export function CodePreviewSection() {
         <div className="grid lg:grid-cols-2 gap-12 items-center">
           <div>
             <Badge variant="secondary" className="mb-4 bg-primary/10 text-primary border-none">
-              Developer Experience
+              Developer First
             </Badge>
             <h2 className="text-2xl font-semibold tracking-tight mb-4">
-              API so clean, it documents itself
+              Built for people who hate forms.
             </h2>
             <p className="text-base text-muted-foreground mb-8">
-              No SDK required. Just HTTP requests. But we have one if you want it.
+              If your first instinct is &quot;can I just use an API?&quot; — yes.
             </p>
 
-            <div className="space-y-4">
-              <div className="flex items-start gap-4">
-                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10 mt-1">
-                  <CheckCircle2 className="h-4 w-4 text-primary" />
-                </div>
-                <div>
-                  <h4 className="font-semibold">Predictable REST</h4>
-                  <p className="text-sm text-muted-foreground">Standard HTTP methods and status codes</p>
-                </div>
-              </div>
-
-              <div className="flex items-start gap-4">
-                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10 mt-1">
-                  <CheckCircle2 className="h-4 w-4 text-primary" />
-                </div>
-                <div>
-                  <h4 className="font-semibold">TypeScript Ready</h4>
-                  <p className="text-sm text-muted-foreground">Full type definitions for all responses</p>
-                </div>
-              </div>
-
-              <div className="flex items-start gap-4">
-                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10 mt-1">
-                  <CheckCircle2 className="h-4 w-4 text-primary" />
-                </div>
-                <div>
-                  <h4 className="font-semibold">Cursor Pagination</h4>
-                  <p className="text-sm text-muted-foreground">Efficient listing with next_cursor tokens</p>
-                </div>
-              </div>
-            </div>
+            <p className="text-sm text-muted-foreground mb-8">
+              No bloated dashboards. No unnecessary steps. Just clean data you can actually use.
+            </p>
           </div>
 
           <div className="relative">
@@ -65,7 +36,7 @@ export function CodePreviewSection() {
               <CardContent className="p-0">
                 <pre className="p-6 text-sm font-mono overflow-x-auto">
                   <code className="text-slate-300">
-{`// Submit a testimonial
+{`// Drop it in. That's it.
 const response = await fetch(
   'https://api.prooflyst.com/v1/testimonials', {
   method: 'POST',
