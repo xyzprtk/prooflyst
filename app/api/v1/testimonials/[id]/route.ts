@@ -4,6 +4,7 @@ import { testimonials } from "@/lib/db/schema";
 import { authenticateAdmin } from "@/lib/auth";
 import { moderateTestimonialSchema } from "@/lib/validations";
 import { apiError } from "@/lib/errors";
+import { updateLocalTestimonialStatus, getLocalTestimonialById } from "@/lib/local-store";
 import { eq, and } from "drizzle-orm";
 
 export async function PATCH(
@@ -29,31 +30,49 @@ export async function PATCH(
 
   const { id } = await params;
 
-  const [updated] = await db
-    .update(testimonials)
-    .set({
-      status: parsed.data.status,
-      updatedAt: new Date(),
-    })
-    .where(
-      and(
-        eq(testimonials.id, id),
-        eq(testimonials.siteId, auth.site.id)
+  try {
+    const [updated] = await db
+      .update(testimonials)
+      .set({
+        status: parsed.data.status,
+        updatedAt: new Date(),
+      })
+      .where(
+        and(
+          eq(testimonials.id, id),
+          eq(testimonials.siteId, auth.site.id)
+        )
       )
-    )
-    .returning();
+      .returning();
 
-  if (!updated) {
-    return apiError("NOT_FOUND", "Testimonial not found");
+    if (!updated) {
+      return apiError("NOT_FOUND", "Testimonial not found");
+    }
+
+    return NextResponse.json({
+      testimonial: {
+        id: updated.id,
+        status: updated.status,
+        updated_at: updated.updatedAt,
+      },
+    });
+  } catch {
+    // Database unavailable, fallback to local-store
+    const local = await getLocalTestimonialById(auth.site.id, id);
+    if (!local) {
+      return apiError("NOT_FOUND", "Testimonial not found");
+    }
+
+    await updateLocalTestimonialStatus(auth.site.id, id, parsed.data.status);
+
+    return NextResponse.json({
+      testimonial: {
+        id,
+        status: parsed.data.status,
+        updated_at: new Date().toISOString(),
+      },
+    });
   }
-
-  return NextResponse.json({
-    testimonial: {
-      id: updated.id,
-      status: updated.status,
-      updated_at: updated.updatedAt,
-    },
-  });
 }
 
 export async function DELETE(
@@ -67,29 +86,47 @@ export async function DELETE(
 
   const { id } = await params;
 
-  const [deleted] = await db
-    .update(testimonials)
-    .set({
-      status: "deleted",
-      updatedAt: new Date(),
-    })
-    .where(
-      and(
-        eq(testimonials.id, id),
-        eq(testimonials.siteId, auth.site.id)
+  try {
+    const [deleted] = await db
+      .update(testimonials)
+      .set({
+        status: "deleted",
+        updatedAt: new Date(),
+      })
+      .where(
+        and(
+          eq(testimonials.id, id),
+          eq(testimonials.siteId, auth.site.id)
+        )
       )
-    )
-    .returning();
+      .returning();
 
-  if (!deleted) {
-    return apiError("NOT_FOUND", "Testimonial not found");
+    if (!deleted) {
+      return apiError("NOT_FOUND", "Testimonial not found");
+    }
+
+    return NextResponse.json({
+      testimonial: {
+        id: deleted.id,
+        status: deleted.status,
+        updated_at: deleted.updatedAt,
+      },
+    });
+  } catch {
+    // Database unavailable, fallback to local-store
+    const local = await getLocalTestimonialById(auth.site.id, id);
+    if (!local) {
+      return apiError("NOT_FOUND", "Testimonial not found");
+    }
+
+    await updateLocalTestimonialStatus(auth.site.id, id, "deleted");
+
+    return NextResponse.json({
+      testimonial: {
+        id,
+        status: "deleted",
+        updated_at: new Date().toISOString(),
+      },
+    });
   }
-
-  return NextResponse.json({
-    testimonial: {
-      id: deleted.id,
-      status: deleted.status,
-      updated_at: deleted.updatedAt,
-    },
-  });
 }
