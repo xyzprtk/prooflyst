@@ -2,6 +2,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
+import { Navbar } from "./sections/navbar";
 import { ArrowRight, Zap, Shield, Code, Globe, Database, Webhook, Check, CheckCircle2, LayoutGrid } from "lucide-react";
 import Link from "next/link";
 
@@ -9,38 +10,7 @@ export default function LandingPage() {
   return (
     <main className="min-h-screen">
       {/* Navigation */}
-      <nav className="fixed top-0 left-0 right-0 z-50 border-b border-border/50 bg-background/80 backdrop-blur-md">
-        <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-6">
-          <div className="flex items-center gap-2">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-emerald-500/10">
-              <Zap className="h-4 w-4 text-emerald-500" />
-            </div>
-            <span className="text-lg font-semibold tracking-tight">Prooflyst</span>
-          </div>
-          <div className="hidden items-center gap-8 md:flex">
-            <Link href="#features" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
-              Features
-            </Link>
-            <Link href="#api" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
-              API
-            </Link>
-            <Link href="#pricing" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
-              Pricing
-            </Link>
-          </div>
-          <div className="flex items-center gap-4">
-            <Link 
-              href="https://github.com/prooflyst" 
-              className="text-sm text-muted-foreground hover:text-foreground transition-colors"
-            >
-              GitHub
-            </Link>
-            <Button size="sm" className="bg-emerald-600 hover:bg-emerald-700">
-              Get Started
-            </Button>
-          </div>
-        </div>
-      </nav>
+      <Navbar />
 
       {/* Hero Section */}
       <section className="relative pt-32 pb-24 lg:pt-48 lg:pb-32 overflow-hidden">
@@ -363,7 +333,7 @@ const data = await response.json();
                     Community support
                   </li>
                 </ul>
-                <Button variant="outline" className="w-full">
+                <Button variant="outline" size="lg" className="w-full">
                   Get Started
                 </Button>
               </CardContent>
@@ -408,7 +378,7 @@ const data = await response.json();
                     Remove branding
                   </li>
                 </ul>
-                <Button className="w-full bg-emerald-600 hover:bg-emerald-700">
+                <Button size="lg" className="w-full bg-emerald-600 hover:bg-emerald-700">
                   Start Free Trial
                 </Button>
               </CardContent>
