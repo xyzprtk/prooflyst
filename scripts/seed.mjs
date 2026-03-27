@@ -3,8 +3,13 @@ import { randomBytes, createHash } from "node:crypto";
 import { neon } from "@neondatabase/serverless";
 
 function loadEnv() {
-  if (!existsSync(".env")) return;
-  const raw = readFileSync(".env", "utf8");
+  const envPath = existsSync(".env.local")
+    ? ".env.local"
+    : existsSync(".env")
+      ? ".env"
+      : null;
+  if (!envPath) return;
+  const raw = readFileSync(envPath, "utf8");
   for (const line of raw.split("\n")) {
     const trimmed = line.trim();
     if (!trimmed || trimmed.startsWith("#")) continue;

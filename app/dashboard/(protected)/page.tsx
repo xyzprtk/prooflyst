@@ -4,6 +4,11 @@ import { db } from "@/lib/db";
 import { sites, testimonials } from "@/lib/db/schema";
 import { getAdminKey } from "@/lib/session";
 import { hashKey } from "@/lib/keys";
+import {
+  getLocalSiteByAdminHash,
+  listLocalTestimonialsBySite,
+  updateLocalTestimonialStatus,
+} from "@/lib/local-store";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { revalidatePath } from "next/cache";
@@ -30,18 +35,31 @@ async function updateStatus(formData: FormData, status: "approved" | "pending" |
   const adminKey = await getAdminKey();
   if (!adminKey) return;
 
-  const [site] = await db
-    .select({ id: sites.id, slug: sites.slug })
-    .from(sites)
-    .where(eq(sites.adminKey, hashKey(adminKey)))
-    .limit(1);
+  const adminHash = hashKey(adminKey);
+  let site: { id: string; slug: string } | undefined;
+  try {
+    [site] = await db
+      .select({ id: sites.id, slug: sites.slug })
+      .from(sites)
+      .where(eq(sites.adminKey, adminHash))
+      .limit(1);
+  } catch {
+    const local = await getLocalSiteByAdminHash(adminHash);
+    if (local) {
+      site = { id: local.id, slug: local.slug };
+    }
+  }
 
   if (!site) return;
 
-  await db
-    .update(testimonials)
-    .set({ status, updatedAt: new Date() })
-    .where(and(eq(testimonials.id, id), eq(testimonials.siteId, site.id)));
+  try {
+    await db
+      .update(testimonials)
+      .set({ status, updatedAt: new Date() })
+      .where(and(eq(testimonials.id, id), eq(testimonials.siteId, site.id)));
+  } catch {
+    await updateLocalTestimonialStatus(site.id, id, status);
+  }
 
   revalidatePath("/dashboard");
   revalidatePath(`/dashboard/sites/${site.id}`);
@@ -54,22 +72,83 @@ export default async function DashboardPage() {
     redirect("/dashboard/login");
   }
 
-  const [site] = await db
-    .select()
-    .from(sites)
-    .where(eq(sites.adminKey, hashKey(adminKey)))
-    .limit(1);
+  let site:
+    | {
+        id: string;
+        slug: string;
+        name: string;
+        domain: string;
+        adminKey: string;
+        publicKey: string;
+        webhookUrl: string | null;
+        branding: {
+          heading?: string;
+          thankYou?: string;
+          accentColor?: string;
+          wallLayout?: "grid" | "list";
+        } | null;
+        createdAt: Date;
+      }
+    | undefined;
+  let rows: Array<{
+    id: string;
+    siteId: string;
+    author: string;
+    content: string;
+    rating: number | null;
+    status: "pending" | "approved" | "deleted";
+    createdAt: Date;
+    updatedAt: Date;
+  }> = [];
+
+  try {
+    const adminHash = hashKey(adminKey);
+    [site] = await db
+      .select()
+      .from(sites)
+      .where(eq(sites.adminKey, adminHash))
+      .limit(1);
+
+    if (site) {
+      rows = await db
+        .select()
+        .from(testimonials)
+        .where(eq(testimonials.siteId, site.id))
+        .orderBy(desc(testimonials.createdAt))
+        .limit(100);
+    }
+  } catch (error) {
+    console.error("Dashboard page DB query failed:", error);
+    const local = await getLocalSiteByAdminHash(hashKey(adminKey));
+    if (local) {
+      site = {
+        id: local.id,
+        slug: local.slug,
+        name: local.name,
+        domain: local.domain,
+        adminKey: local.adminKey,
+        publicKey: local.publicKey,
+        webhookUrl: null,
+        branding: null,
+        createdAt: new Date(local.createdAt),
+      };
+      const localRows = await listLocalTestimonialsBySite(local.id);
+      rows = localRows.map((item) => ({
+        id: item.id,
+        siteId: item.siteId,
+        author: item.author,
+        content: item.content,
+        rating: item.rating,
+        status: item.status,
+        createdAt: new Date(item.createdAt),
+        updatedAt: new Date(item.updatedAt),
+      }));
+    }
+  }
 
   if (!site) {
     redirect("/dashboard/setup");
   }
-
-  const rows = await db
-    .select()
-    .from(testimonials)
-    .where(eq(testimonials.siteId, site.id))
-    .orderBy(desc(testimonials.createdAt))
-    .limit(100);
 
   const stats = {
     total: rows.length,

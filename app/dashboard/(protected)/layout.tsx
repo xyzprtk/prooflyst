@@ -6,6 +6,7 @@ import { LogoutButton } from "@/components/dashboard/logout-button";
 import { db } from "@/lib/db";
 import { sites } from "@/lib/db/schema";
 import { hashKey } from "@/lib/keys";
+import { getLocalSiteByAdminHash } from "@/lib/local-store";
 import { getAdminKey } from "@/lib/session";
 
 export default async function ProtectedDashboardLayout({
@@ -18,11 +19,26 @@ export default async function ProtectedDashboardLayout({
     redirect("/dashboard/login");
   }
 
-  const [site] = await db
-    .select({ id: sites.id, name: sites.name })
-    .from(sites)
-    .where(eq(sites.adminKey, hashKey(adminKey)))
-    .limit(1);
+  let site:
+    | {
+        id: string;
+        name: string;
+      }
+    | undefined;
+
+  try {
+    [site] = await db
+      .select({ id: sites.id, name: sites.name })
+      .from(sites)
+      .where(eq(sites.adminKey, hashKey(adminKey)))
+      .limit(1);
+  } catch (error) {
+    console.error("Dashboard DB query failed:", error);
+    const local = await getLocalSiteByAdminHash(hashKey(adminKey));
+    if (local) {
+      site = { id: local.id, name: local.name };
+    }
+  }
 
   if (!site) {
     redirect("/dashboard/login");
