@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 import { and, desc, eq } from "drizzle-orm";
-import { db } from "@/lib/db";
+import { db, isDbAvailable } from "@/lib/db";
 import { sites, testimonials } from "@/lib/db/schema";
 import { getAdminKey } from "@/lib/session";
 import { hashKey } from "@/lib/keys";
@@ -36,15 +36,20 @@ async function updateStatus(formData: FormData, status: "approved" | "pending" |
   if (!adminKey) return;
 
   const adminHash = hashKey(adminKey);
+  const canUseDb = await isDbAvailable();
   let site: { id: string; slug: string } | undefined;
   
-  const [siteResult] = await Promise.allSettled([
-    db.select({ id: sites.id, slug: sites.slug }).from(sites).where(eq(sites.adminKey, adminHash)).limit(1)
-  ]);
+  if (canUseDb) {
+    const [siteResult] = await Promise.allSettled([
+      db.select({ id: sites.id, slug: sites.slug }).from(sites).where(eq(sites.adminKey, adminHash)).limit(1)
+    ]);
+    
+    if (siteResult.status === "fulfilled" && siteResult.value.length > 0) {
+      site = siteResult.value[0];
+    }
+  }
   
-  if (siteResult.status === "fulfilled" && siteResult.value.length > 0) {
-    site = siteResult.value[0];
-  } else {
+  if (!site) {
     const local = await getLocalSiteByAdminHash(adminHash);
     if (local) {
       site = { id: local.id, slug: local.slug };
@@ -53,17 +58,23 @@ async function updateStatus(formData: FormData, status: "approved" | "pending" |
 
   if (!site) return;
 
-  const [updateResult] = await Promise.allSettled([
-    db
-      .update(testimonials)
-      .set({ status, updatedAt: new Date() })
-      .where(and(eq(testimonials.id, id), eq(testimonials.siteId, site.id)))
-  ]);
-  
-  if (updateResult.status === "rejected") {
-    await updateLocalTestimonialStatus(site.id, id, status);
+  if (canUseDb) {
+    const [updateResult] = await Promise.allSettled([
+      db
+        .update(testimonials)
+        .set({ status, updatedAt: new Date() })
+        .where(and(eq(testimonials.id, id), eq(testimonials.siteId, site.id)))
+    ]);
+    
+    if (updateResult.status === "fulfilled") {
+      revalidatePath("/dashboard");
+      revalidatePath(`/dashboard/sites/${site.id}`);
+      revalidatePath(`/wall/${site.slug}`);
+      return;
+    }
   }
 
+  await updateLocalTestimonialStatus(site.id, id, status);
   revalidatePath("/dashboard");
   revalidatePath(`/dashboard/sites/${site.id}`);
   revalidatePath(`/wall/${site.slug}`);
@@ -105,29 +116,34 @@ export default async function DashboardPage() {
   }> = [];
 
   const adminHash = hashKey(adminKey);
+  const canUseDb = await isDbAvailable();
   
-  // Try database first - use allSettled to never throw
-  const [dbSiteResult] = await Promise.allSettled([
-    db.select().from(sites).where(eq(sites.adminKey, adminHash)).limit(1)
-  ]);
-
-  if (dbSiteResult.status === "fulfilled" && dbSiteResult.value.length > 0) {
-    site = dbSiteResult.value[0];
-
-    // Fetch testimonials from database
-    const [dbTestimonialsResult] = await Promise.allSettled([
-      db
-        .select()
-        .from(testimonials)
-        .where(eq(testimonials.siteId, site.id))
-        .orderBy(desc(testimonials.createdAt))
-        .limit(100)
+  if (canUseDb) {
+    // Try database - use allSettled to never throw
+    const [dbSiteResult] = await Promise.allSettled([
+      db.select().from(sites).where(eq(sites.adminKey, adminHash)).limit(1)
     ]);
 
-    if (dbTestimonialsResult.status === "fulfilled") {
-      rows = dbTestimonialsResult.value;
+    if (dbSiteResult.status === "fulfilled" && dbSiteResult.value.length > 0) {
+      site = dbSiteResult.value[0];
+
+      // Fetch testimonials from database
+      const [dbTestimonialsResult] = await Promise.allSettled([
+        db
+          .select()
+          .from(testimonials)
+          .where(eq(testimonials.siteId, site.id))
+          .orderBy(desc(testimonials.createdAt))
+          .limit(100)
+      ]);
+
+      if (dbTestimonialsResult.status === "fulfilled") {
+        rows = dbTestimonialsResult.value;
+      }
     }
-  } else {
+  }
+  
+  if (!site) {
     // Fall back to local store
     const local = await getLocalSiteByAdminHash(adminHash);
     if (local) {

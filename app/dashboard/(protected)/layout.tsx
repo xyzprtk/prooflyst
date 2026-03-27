@@ -3,7 +3,7 @@ import Link from "next/link";
 import { eq } from "drizzle-orm";
 import { Zap } from "lucide-react";
 import { LogoutButton } from "@/components/dashboard/logout-button";
-import { db } from "@/lib/db";
+import { db, isDbAvailable } from "@/lib/db";
 import { sites } from "@/lib/db/schema";
 import { hashKey } from "@/lib/keys";
 import { getLocalSiteByAdminHash } from "@/lib/local-store";
@@ -12,17 +12,22 @@ import { getAdminKey } from "@/lib/session";
 async function getSiteByAdminKey(adminKey: string): Promise<{ id: string; name: string } | null> {
   const adminHash = hashKey(adminKey);
   
-  // Try database first - use allSettled to never throw
-  const [dbResult] = await Promise.allSettled([
-    db
-      .select({ id: sites.id, name: sites.name })
-      .from(sites)
-      .where(eq(sites.adminKey, adminHash))
-      .limit(1)
-  ]);
+  // Check if database is available before querying
+  const canUseDb = await isDbAvailable();
   
-  if (dbResult.status === "fulfilled" && dbResult.value.length > 0) {
-    return dbResult.value[0];
+  if (canUseDb) {
+    // Try database first - use allSettled to never throw
+    const [dbResult] = await Promise.allSettled([
+      db
+        .select({ id: sites.id, name: sites.name })
+        .from(sites)
+        .where(eq(sites.adminKey, adminHash))
+        .limit(1)
+    ]);
+    
+    if (dbResult.status === "fulfilled" && dbResult.value.length > 0) {
+      return dbResult.value[0];
+    }
   }
 
   // Fall back to local store

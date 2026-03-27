@@ -17,3 +17,28 @@ function normalizeDatabaseUrl(rawUrl?: string): string {
 
 const sql = neon(normalizeDatabaseUrl(process.env.DATABASE_URL));
 export const db = drizzle({ client: sql, schema });
+
+let dbAvailable: boolean | null = null;
+
+export async function isDbAvailable(): Promise<boolean> {
+  if (dbAvailable !== null) {
+    return dbAvailable;
+  }
+  
+  try {
+    // Simple query to check connectivity
+    await sql`SELECT 1`;
+    dbAvailable = true;
+    return true;
+  } catch {
+    if (process.env.NODE_ENV === "development") {
+      console.log("Database unavailable - using local store fallback");
+    }
+    dbAvailable = false;
+    return false;
+  }
+}
+
+export function resetDbAvailableFlag() {
+  dbAvailable = null;
+}
