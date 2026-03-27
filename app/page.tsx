@@ -2,7 +2,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
-import { ArrowRight, Zap, Shield, Code, Globe, Database, Webhook, Check, Copy, CheckCircle2, Clock, Lock, LayoutGrid } from "lucide-react";
+import { ArrowRight, Zap, Shield, Code, Globe, Database, Webhook, Check, CheckCircle2, LayoutGrid } from "lucide-react";
 import Link from "next/link";
 
 export default function LandingPage() {
@@ -98,7 +98,7 @@ export default function LandingPage() {
         <div className="mx-auto max-w-7xl px-6">
           <div className="max-w-2xl mb-16">
             <h2 className="text-3xl font-bold tracking-tight sm:text-4xl mb-4">
-              Everything you need, nothing you don't
+              Everything you need, nothing you don&apos;t
             </h2>
             <p className="text-lg text-muted-foreground">
               Built for developers who want control. No bloat, no lock-in.
