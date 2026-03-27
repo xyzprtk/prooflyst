@@ -9,6 +9,39 @@ import { hashKey } from "@/lib/keys";
 import { getLocalSiteByAdminHash } from "@/lib/local-store";
 import { getAdminKey } from "@/lib/session";
 
+async function getSiteByAdminKey(adminKey: string): Promise<{ id: string; name: string } | null> {
+  const adminHash = hashKey(adminKey);
+  
+  // Try database first
+  try {
+    const result = await Promise.resolve(
+      db
+        .select({ id: sites.id, name: sites.name })
+        .from(sites)
+        .where(eq(sites.adminKey, adminHash))
+        .limit(1)
+    ).catch(() => null);
+    
+    if (result && result.length > 0) {
+      return result[0];
+    }
+  } catch {
+    // Database query failed, fall through to local store
+  }
+
+  // Fall back to local store
+  try {
+    const local = await getLocalSiteByAdminHash(adminHash);
+    if (local) {
+      return { id: local.id, name: local.name };
+    }
+  } catch {
+    // Local store also failed
+  }
+
+  return null;
+}
+
 export default async function ProtectedDashboardLayout({
   children,
 }: {
@@ -19,43 +52,7 @@ export default async function ProtectedDashboardLayout({
     redirect("/dashboard/login");
   }
 
-  const adminHash = hashKey(adminKey);
-
-  let site:
-    | {
-        id: string;
-        name: string;
-      }
-    | undefined;
-
-  try {
-    const result = await db
-      .select({ id: sites.id, name: sites.name })
-      .from(sites)
-      .where(eq(sites.adminKey, adminHash))
-      .limit(1);
-    if (result.length > 0) {
-      site = result[0];
-    }
-  } catch (error) {
-    if (process.env.NODE_ENV === "development") {
-      console.error("Dashboard DB query failed:", error);
-    }
-  }
-
-  if (!site) {
-    try {
-      const local = await getLocalSiteByAdminHash(adminHash);
-      if (local) {
-        site = { id: local.id, name: local.name };
-      }
-    } catch (error) {
-      if (process.env.NODE_ENV === "development") {
-        console.error("Local store fallback failed:", error);
-      }
-    }
-  }
-
+  const site = await getSiteByAdminKey(adminKey);
   if (!site) {
     redirect("/dashboard/login");
   }
