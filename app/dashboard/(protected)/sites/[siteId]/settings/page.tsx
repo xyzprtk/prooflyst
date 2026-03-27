@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { and, eq } from "drizzle-orm";
 import { notFound, redirect } from "next/navigation";
-import { db } from "@/lib/db";
+import { db, isDbAvailable } from "@/lib/db";
 import { sites } from "@/lib/db/schema";
 import { getAdminKey } from "@/lib/session";
 import { hashKey } from "@/lib/keys";
@@ -21,19 +21,23 @@ export default async function SiteSettingsPage({
   }
 
   const adminHash = hashKey(adminKey);
+  const canUseDb = await isDbAvailable();
   
-  // Try database first - use allSettled to never throw
-  const [dbResult] = await Promise.allSettled([
-    db
-      .select()
-      .from(sites)
-      .where(and(eq(sites.id, siteId), eq(sites.adminKey, adminHash)))
-      .limit(1)
-  ]);
+  let site = undefined;
+  
+  if (canUseDb) {
+    const [dbResult] = await Promise.allSettled([
+      db
+        .select()
+        .from(sites)
+        .where(and(eq(sites.id, siteId), eq(sites.adminKey, adminHash)))
+        .limit(1)
+    ]);
 
-  let site = dbResult.status === "fulfilled" && dbResult.value.length > 0 
-    ? dbResult.value[0] 
-    : undefined;
+    if (dbResult.status === "fulfilled" && dbResult.value.length > 0) {
+      site = dbResult.value[0];
+    }
+  }
 
   // Fall back to local store
   if (!site) {

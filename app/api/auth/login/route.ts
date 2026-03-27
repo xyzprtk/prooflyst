@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { db } from "@/lib/db";
+import { db, isDbAvailable } from "@/lib/db";
 import { sites } from "@/lib/db/schema";
 import { hashKey } from "@/lib/keys";
 import { getLocalSiteByAdminHash } from "@/lib/local-store";
@@ -14,21 +14,25 @@ export async function POST(request: Request) {
   }
 
   const hashed = hashKey(body.key);
+  const canUseDb = await isDbAvailable();
   
-  // Try database first - use allSettled to never throw
-  const [dbResult] = await Promise.allSettled([
-    db
-      .select({ id: sites.id })
-      .from(sites)
-      .where(eq(sites.adminKey, hashed))
-      .limit(1)
-  ]);
-
   let site: { id: string } | undefined;
   
-  if (dbResult.status === "fulfilled" && dbResult.value.length > 0) {
-    site = dbResult.value[0];
-  } else {
+  if (canUseDb) {
+    const [dbResult] = await Promise.allSettled([
+      db
+        .select({ id: sites.id })
+        .from(sites)
+        .where(eq(sites.adminKey, hashed))
+        .limit(1)
+    ]);
+
+    if (dbResult.status === "fulfilled" && dbResult.value.length > 0) {
+      site = dbResult.value[0];
+    }
+  }
+
+  if (!site) {
     // Fall back to local store
     const local = await getLocalSiteByAdminHash(hashed);
     if (local) {

@@ -1,5 +1,5 @@
 import { eq } from "drizzle-orm";
-import { db } from "./db";
+import { db, isDbAvailable } from "./db";
 import { sites, type Site } from "./db/schema";
 import { hashKey } from "./keys";
 import { getLocalSiteByAdminHash } from "./local-store";
@@ -52,18 +52,20 @@ export async function authenticateAdmin(
   }
 
   const hashedKey = hashKey(key);
+  const canUseDb = await isDbAvailable();
 
-  // Try database first - use allSettled to never throw
-  const [dbResult] = await Promise.allSettled([
-    db
-      .select()
-      .from(sites)
-      .where(eq(sites.adminKey, hashedKey))
-      .limit(1)
-  ]);
+  if (canUseDb) {
+    const [dbResult] = await Promise.allSettled([
+      db
+        .select()
+        .from(sites)
+        .where(eq(sites.adminKey, hashedKey))
+        .limit(1)
+    ]);
 
-  if (dbResult.status === "fulfilled" && dbResult.value.length > 0) {
-    return { success: true, site: dbResult.value[0] };
+    if (dbResult.status === "fulfilled" && dbResult.value.length > 0) {
+      return { success: true, site: dbResult.value[0] };
+    }
   }
 
   // Fall back to local store
@@ -87,25 +89,28 @@ export async function authenticatePublicKey(
     };
   }
 
-  // Try database first - use allSettled to never throw
-  const [dbResult] = await Promise.allSettled([
-    db
-      .select()
-      .from(sites)
-      .where(eq(sites.id, siteId))
-      .limit(1)
-  ]);
+  const canUseDb = await isDbAvailable();
 
-  if (dbResult.status === "fulfilled" && dbResult.value.length > 0) {
-    const site = dbResult.value[0];
-    if (site.publicKey !== publicKey) {
-      return {
-        success: false,
-        error: "Public key does not match site",
-        status: 403,
-      };
+  if (canUseDb) {
+    const [dbResult] = await Promise.allSettled([
+      db
+        .select()
+        .from(sites)
+        .where(eq(sites.id, siteId))
+        .limit(1)
+    ]);
+
+    if (dbResult.status === "fulfilled" && dbResult.value.length > 0) {
+      const site = dbResult.value[0];
+      if (site.publicKey !== publicKey) {
+        return {
+          success: false,
+          error: "Public key does not match site",
+          status: 403,
+        };
+      }
+      return { success: true, site };
     }
-    return { success: true, site };
   }
 
   // Fall back to local store

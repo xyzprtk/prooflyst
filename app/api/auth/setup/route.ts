@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { db } from "@/lib/db";
+import { db, isDbAvailable } from "@/lib/db";
 import { sites } from "@/lib/db/schema";
 import {
   generateSiteId,
@@ -26,48 +26,61 @@ export async function POST(request: Request) {
     );
   }
 
-  // Check for existing slug - use allSettled to never throw
-  const [existingResult] = await Promise.allSettled([
-    db
-      .select({ id: sites.id })
-      .from(sites)
-      .where(eq(sites.slug, slug))
-      .limit(1)
-  ]);
+  const canUseDb = await isDbAvailable();
 
-  let existing: Array<{ id: string }> = [];
-  if (existingResult.status === "fulfilled") {
-    existing = existingResult.value;
-  } else {
+  // Check for existing slug
+  let existing = false;
+  
+  if (canUseDb) {
+    const [existingResult] = await Promise.allSettled([
+      db
+        .select({ id: sites.id })
+        .from(sites)
+        .where(eq(sites.slug, slug))
+        .limit(1)
+    ]);
+
+    if (existingResult.status === "fulfilled" && existingResult.value.length > 0) {
+      existing = true;
+    }
+  }
+  
+  if (!existing) {
     const local = await getLocalSiteBySlug(slug);
-    existing = local ? [{ id: local.id }] : [];
+    if (local) {
+      existing = true;
+    }
   }
 
-  if (existing.length > 0) {
+  if (existing) {
     return apiError("VALIDATION_ERROR", `Slug "${slug}" is already taken`);
   }
 
   const id = generateSiteId();
   const publicKey = generatePublicKey();
   const rawAdminKey = generateAdminKey();
-
   const createdAt = new Date().toISOString();
   const adminHash = hashKey(rawAdminKey);
   
-  // Try to insert into database - use allSettled to never throw
-  const [insertResult] = await Promise.allSettled([
-    db.insert(sites).values({
-      id,
-      slug,
-      name,
-      domain,
-      adminKey: adminHash,
-      publicKey,
-    })
-  ]);
+  // Try to insert into database
+  let inserted = false;
+  
+  if (canUseDb) {
+    const [insertResult] = await Promise.allSettled([
+      db.insert(sites).values({
+        id,
+        slug,
+        name,
+        domain,
+        adminKey: adminHash,
+        publicKey,
+      })
+    ]);
+    inserted = insertResult.status === "fulfilled";
+  }
 
-  if (insertResult.status === "rejected") {
-    // Database insert failed, use local store
+  if (!inserted) {
+    // Use local store
     await insertLocalSite({
       id,
       slug,
