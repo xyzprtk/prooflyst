@@ -8,40 +8,40 @@ export function CodePreviewSection() {
       <div className="mx-auto max-w-7xl px-6">
         <div className="grid lg:grid-cols-2 gap-12 items-center">
           <div>
-            <Badge variant="secondary" className="mb-4 bg-emerald-500/10 text-emerald-600 border-none">
+            <Badge variant="secondary" className="mb-4 bg-primary/10 text-primary border-none">
               Developer Experience
             </Badge>
-            <h2 className="text-3xl font-bold tracking-tight sm:text-4xl mb-4">
+            <h2 className="text-2xl font-semibold tracking-tight mb-4">
               API so clean, it documents itself
             </h2>
-            <p className="text-lg text-muted-foreground mb-8">
+            <p className="text-base text-muted-foreground mb-8">
               No SDK required. Just HTTP requests. But we have one if you want it.
             </p>
-            
+
             <div className="space-y-4">
               <div className="flex items-start gap-4">
-                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-emerald-500/10 mt-1">
-                  <CheckCircle2 className="h-4 w-4 text-emerald-500" />
+                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10 mt-1">
+                  <CheckCircle2 className="h-4 w-4 text-primary" />
                 </div>
                 <div>
                   <h4 className="font-semibold">Predictable REST</h4>
                   <p className="text-sm text-muted-foreground">Standard HTTP methods and status codes</p>
                 </div>
               </div>
-              
+
               <div className="flex items-start gap-4">
-                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-emerald-500/10 mt-1">
-                  <CheckCircle2 className="h-4 w-4 text-emerald-500" />
+                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10 mt-1">
+                  <CheckCircle2 className="h-4 w-4 text-primary" />
                 </div>
                 <div>
                   <h4 className="font-semibold">TypeScript Ready</h4>
                   <p className="text-sm text-muted-foreground">Full type definitions for all responses</p>
                 </div>
               </div>
-              
+
               <div className="flex items-start gap-4">
-                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-emerald-500/10 mt-1">
-                  <CheckCircle2 className="h-4 w-4 text-emerald-500" />
+                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10 mt-1">
+                  <CheckCircle2 className="h-4 w-4 text-primary" />
                 </div>
                 <div>
                   <h4 className="font-semibold">Cursor Pagination</h4>
@@ -50,10 +50,10 @@ export function CodePreviewSection() {
               </div>
             </div>
           </div>
-          
+
           <div className="relative">
-            <div className="absolute -inset-4 bg-gradient-to-r from-emerald-500/10 to-teal-500/10 rounded-2xl blur-2xl" />
-            <Card className="relative border-border/50 bg-[#0d1117] overflow-hidden">
+            <div className="absolute -inset-4 bg-gradient-to-r from-primary/10 to-primary/5 rounded-2xl blur-2xl" />
+            <Card className="relative border-border rounded-xl bg-[#111113] overflow-hidden">
               <div className="flex items-center gap-2 px-4 py-3 border-b border-border/20">
                 <div className="flex gap-1.5">
                   <div className="h-3 w-3 rounded-full bg-red-500/80" />

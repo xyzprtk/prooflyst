@@ -9,8 +9,8 @@ export function Footer() {
         <div className="grid md:grid-cols-4 gap-8 mb-12">
           <div className="md:col-span-2">
             <div className="flex items-center gap-2 mb-4">
-              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-emerald-500/10">
-                <Zap className="h-4 w-4 text-emerald-500" />
+              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10">
+                <Zap className="h-4 w-4 text-primary" />
               </div>
               <span className="text-lg font-semibold tracking-tight">Prooflyst</span>
             </div>

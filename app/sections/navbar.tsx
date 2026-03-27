@@ -42,8 +42,8 @@ export function Navbar() {
     >
       <div className="flex h-14 items-center justify-between px-6 min-w-[800px] max-w-5xl">
         <div className="flex items-center gap-2">
-          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-emerald-500/10">
-            <Zap className="h-4 w-4 text-emerald-500" />
+          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10">
+            <Zap className="h-4 w-4 text-primary" />
           </div>
           <span className="text-lg font-semibold tracking-tight">Prooflyst</span>
         </div>
@@ -80,7 +80,7 @@ export function Navbar() {
           </Link>
           <Button
             size="sm"
-            className="bg-emerald-600 hover:bg-emerald-700 h-9 px-5"
+            className="h-9 px-5"
           >
             Get Started
           </Button>

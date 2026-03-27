@@ -39,10 +39,10 @@ export function FeaturesSection() {
     <section id="features" className="py-24 bg-muted/30">
       <div className="mx-auto max-w-7xl px-6">
         <div className="max-w-2xl mb-16">
-          <h2 className="text-3xl font-bold tracking-tight sm:text-4xl mb-4">
+          <h2 className="text-2xl font-semibold tracking-tight mb-4">
             Everything you need, nothing you don&apos;t
           </h2>
-          <p className="text-lg text-muted-foreground">
+          <p className="text-base text-muted-foreground">
             Built for developers who want control. No bloat, no lock-in.
           </p>
         </div>
@@ -51,11 +51,11 @@ export function FeaturesSection() {
           {features.map((feature) => (
             <Card 
               key={feature.title}
-              className="group border-border/50 bg-background/50 backdrop-blur-sm hover:border-emerald-500/30 transition-all duration-300"
+              className="group border-border rounded-xl bg-background hover:border-primary/30 transition-all duration-300"
             >
               <CardContent className="p-6">
-                <div className="mb-4 flex h-10 w-10 items-center justify-center rounded-lg bg-emerald-500/10 group-hover:bg-emerald-500/20 transition-colors">
-                  <feature.icon className="h-5 w-5 text-emerald-500" />
+                <div className="mb-4 flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10 group-hover:bg-primary/20 transition-colors">
+                  <feature.icon className="h-5 w-5 text-primary" />
                 </div>
                 <h3 className="text-lg font-semibold mb-2">{feature.title}</h3>
                 <p className="text-sm text-muted-foreground">{feature.description}</p>

@@ -24,16 +24,16 @@ export function PricingSection() {
     <section id="pricing" className="py-24">
       <div className="mx-auto max-w-7xl px-6">
         <div className="text-center max-w-2xl mx-auto mb-16">
-          <h2 className="text-3xl font-bold tracking-tight sm:text-4xl mb-4">
+          <h2 className="text-2xl font-semibold tracking-tight mb-4">
             Simple pricing
           </h2>
-          <p className="text-lg text-muted-foreground">
+          <p className="text-base text-muted-foreground">
             Start free, scale when you need to. No hidden fees.
           </p>
         </div>
-        
+
         <div className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto">
-          <Card className="border-border/50 relative overflow-hidden">
+          <Card className="border-border relative overflow-hidden rounded-xl">
             <CardContent className="p-8">
               <div className="mb-4">
                 <h3 className="text-xl font-semibold">Starter</h3>
@@ -46,7 +46,7 @@ export function PricingSection() {
               <ul className="space-y-3 mb-8">
                 {starterFeatures.map((feature) => (
                   <li key={feature} className="flex items-center gap-2 text-sm">
-                    <Check className="h-4 w-4 text-emerald-500" />
+                    <Check className="h-4 w-4 text-primary" />
                     {feature}
                   </li>
                 ))}
@@ -56,9 +56,9 @@ export function PricingSection() {
               </Button>
             </CardContent>
           </Card>
-          
-          <Card className="border-emerald-500/30 relative overflow-hidden">
-            <div className="absolute top-0 right-0 bg-emerald-500 text-white text-xs font-medium px-3 py-1 rounded-bl-lg">
+
+          <Card className="border-primary/30 relative overflow-hidden rounded-xl">
+            <div className="absolute top-0 right-0 bg-primary text-white text-xs font-medium px-3 py-1 rounded-bl-lg">
               Popular
             </div>
             <CardContent className="p-8">
@@ -73,12 +73,12 @@ export function PricingSection() {
               <ul className="space-y-3 mb-8">
                 {proFeatures.map((feature) => (
                   <li key={feature} className="flex items-center gap-2 text-sm">
-                    <Check className="h-4 w-4 text-emerald-500" />
+                    <Check className="h-4 w-4 text-primary" />
                     {feature}
                   </li>
                 ))}
               </ul>
-              <Button size="lg" className="w-full bg-emerald-600 hover:bg-emerald-700">
+              <Button size="lg" className="w-full">
                 Start Free Trial
               </Button>
             </CardContent>
