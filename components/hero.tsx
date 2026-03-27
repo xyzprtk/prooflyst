@@ -17,13 +17,15 @@ export function HeroSection() {
           </Badge>
           
           <h1 className="text-4xl font-semibold tracking-tight sm:text-5xl lg:text-6xl mb-6">
-            Collect testimonials
-            <span className="block text-primary">without the widget</span>
+          Proof, but structured.
+            {/* <span className="block text-primary">stop screenshotting testimonials</span> */}
           </h1>
           
-          <p className="text-lg text-muted-foreground leading-relaxed max-w-2xl mb-8">
-            Developer-first API to collect, moderate, and serve testimonials. 
-            You own the frontend. We handle the infrastructure.
+          <p className="text-lg text-muted-foreground leading-relaxed max-w-2xl">
+          Stop screenshotting testimonials. Start building a proof system.
+          </p>
+          <p className="text-base text-muted-foreground leading-relaxed max-w-2xl mb-8">
+          Collect, verify, and showcase social proof — without the mess.
           </p>
           
           <div className="flex flex-col sm:flex-row gap-4">
