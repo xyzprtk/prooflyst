@@ -19,6 +19,8 @@ export default async function ProtectedDashboardLayout({
     redirect("/dashboard/login");
   }
 
+  const adminHash = hashKey(adminKey);
+
   let site:
     | {
         id: string;
@@ -27,16 +29,30 @@ export default async function ProtectedDashboardLayout({
     | undefined;
 
   try {
-    [site] = await db
+    const result = await db
       .select({ id: sites.id, name: sites.name })
       .from(sites)
-      .where(eq(sites.adminKey, hashKey(adminKey)))
+      .where(eq(sites.adminKey, adminHash))
       .limit(1);
+    if (result.length > 0) {
+      site = result[0];
+    }
   } catch (error) {
-    console.error("Dashboard DB query failed:", error);
-    const local = await getLocalSiteByAdminHash(hashKey(adminKey));
-    if (local) {
-      site = { id: local.id, name: local.name };
+    if (process.env.NODE_ENV === "development") {
+      console.error("Dashboard DB query failed:", error);
+    }
+  }
+
+  if (!site) {
+    try {
+      const local = await getLocalSiteByAdminHash(adminHash);
+      if (local) {
+        site = { id: local.id, name: local.name };
+      }
+    } catch (error) {
+      if (process.env.NODE_ENV === "development") {
+        console.error("Local store fallback failed:", error);
+      }
     }
   }
 
