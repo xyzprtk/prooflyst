@@ -12,6 +12,7 @@ import {
   insertLocalTestimonial,
   getLocalTestimonialsBySiteId,
 } from "@/lib/local-store";
+import { sanitizeString } from "@/lib/sanitize";
 import { eq, and, desc, asc, lt, gt } from "drizzle-orm";
 
 export async function POST(request: Request) {
@@ -29,6 +30,10 @@ export async function POST(request: Request) {
 
   const { site_id, public_key, author, content, rating } = parsed.data;
 
+  // Sanitize user input
+  const sanitizedAuthor = sanitizeString(author);
+  const sanitizedContent = sanitizeString(content);
+
   const auth = await authenticatePublicKey(site_id, public_key);
   if (!auth.success) {
     return apiError(
@@ -44,8 +49,8 @@ export async function POST(request: Request) {
     await db.insert(testimonials).values({
       id,
       siteId: site_id,
-      author,
-      content,
+      author: sanitizedAuthor,
+      content: sanitizedContent,
       rating,
       status: "pending",
     });
@@ -59,8 +64,8 @@ export async function POST(request: Request) {
     await insertLocalTestimonial({
       id,
       siteId: site_id,
-      author,
-      content,
+      author: sanitizedAuthor,
+      content: sanitizedContent,
       rating: rating ?? null,
       status: "pending",
       createdAt: now.toISOString(),
