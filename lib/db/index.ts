@@ -18,27 +18,40 @@ function normalizeDatabaseUrl(rawUrl?: string): string {
 const sql = neon(normalizeDatabaseUrl(process.env.DATABASE_URL));
 export const db = drizzle({ client: sql, schema });
 
-let dbAvailable: boolean | null = null;
+// Track if DB tables exist
+let dbTablesExist: boolean | null = null;
+let dbCheckPromise: Promise<boolean> | null = null;
 
 export async function isDbAvailable(): Promise<boolean> {
-  if (dbAvailable !== null) {
-    return dbAvailable;
+  if (dbTablesExist !== null) {
+    return dbTablesExist;
   }
   
-  try {
-    // Simple query to check connectivity
-    await sql`SELECT 1`;
-    dbAvailable = true;
-    return true;
-  } catch {
-    if (process.env.NODE_ENV === "development") {
-      console.log("Database unavailable - using local store fallback");
-    }
-    dbAvailable = false;
-    return false;
+  // Only check once at a time
+  if (dbCheckPromise) {
+    return dbCheckPromise;
   }
+  
+  dbCheckPromise = (async () => {
+    try {
+      // Try to query the sites table to see if it exists
+      await sql`SELECT 1 FROM sites LIMIT 1`;
+      dbTablesExist = true;
+      return true;
+    } catch {
+      if (process.env.NODE_ENV === "development") {
+        console.log("Database tables not found - using local store fallback");
+      }
+      dbTablesExist = false;
+      return false;
+    } finally {
+      dbCheckPromise = null;
+    }
+  })();
+  
+  return dbCheckPromise;
 }
 
 export function resetDbAvailableFlag() {
-  dbAvailable = null;
+  dbTablesExist = null;
 }
