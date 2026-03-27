@@ -15,18 +15,17 @@ export function Footer() {
               <span className="text-lg font-semibold tracking-tight">Prooflyst</span>
             </div>
             <p className="text-sm text-muted-foreground max-w-xs">
-              Developer-first API to collect, manage, and serve testimonials. 
-              Built for the modern web.
+              Structured social proof for modern products.
             </p>
           </div>
           
           <div>
-            <h4 className="font-semibold mb-4">Product</h4>
+            <h4 className="font-semibold mb-4">Links</h4>
             <ul className="space-y-2 text-sm text-muted-foreground">
-              <li><Link href="#features" className="hover:text-foreground transition-colors">Features</Link></li>
+              <li><Link href="#" className="hover:text-foreground transition-colors">Docs</Link></li>
               <li><Link href="#pricing" className="hover:text-foreground transition-colors">Pricing</Link></li>
-              <li><Link href="#api" className="hover:text-foreground transition-colors">API Docs</Link></li>
-              <li><Link href="#" className="hover:text-foreground transition-colors">Changelog</Link></li>
+              <li><Link href="#" className="hover:text-foreground transition-colors">Twitter</Link></li>
+              <li><Link href="https://github.com/xyzprtk/prooflyst" className="hover:text-foreground transition-colors">GitHub</Link></li>
             </ul>
           </div>
           
@@ -35,8 +34,6 @@ export function Footer() {
             <ul className="space-y-2 text-sm text-muted-foreground">
               <li><Link href="#" className="hover:text-foreground transition-colors">About</Link></li>
               <li><Link href="#" className="hover:text-foreground transition-colors">Blog</Link></li>
-              <li><Link href="https://github.com/xyzprtk/prooflyst" className="hover:text-foreground transition-colors">GitHub</Link></li>
-              <li><Link href="#" className="hover:text-foreground transition-colors">Twitter</Link></li>
             </ul>
           </div>
         </div>
@@ -44,7 +41,7 @@ export function Footer() {
         <Separator className="mb-8" />
         
         <div className="flex flex-col md:flex-row justify-between items-center gap-4 text-sm text-muted-foreground">
-          <p>© 2026 Prooflyst. All rights reserved.</p>
+          <p>Built for developers who care about details.</p>
           <div className="flex gap-6">
             <Link href="#" className="hover:text-foreground transition-colors">Privacy</Link>
             <Link href="#" className="hover:text-foreground transition-colors">Terms</Link>
