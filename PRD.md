@@ -286,7 +286,95 @@ GET /v1/public/testimonials/:site_id
 
 ---
 
-### 6.6 Webhook (Basic)
+### 6.6 Hosted Submission Page
+
+Every site gets a public, Prooflyst-hosted form page for collecting testimonials without the developer building any UI.
+
+#### URL
+
+```
+https://prooflyst.com/t/:site_slug
+```
+
+`site_slug` is a unique, human-readable identifier set during site creation (e.g., `my-saas-app`).
+
+#### Behavior
+
+- Renders a clean, branded submission form (author, content, optional rating)
+- Submits to `POST /v1/testimonials` internally
+- Developer can customize: heading text, thank-you message, accent color
+- Footer displays: **"Collect testimonials for your product → prooflyst.com"**
+- Developers can share the link directly, embed it in emails, or iframe it
+
+#### Site Creation (updated)
+
+```json
+{
+  "name": "My SaaS App",
+  "domain": "https://myapp.com",
+  "slug": "my-saas-app",
+  "branding": {
+    "heading": "We'd love your feedback!",
+    "thank_you": "Thanks for sharing your experience.",
+    "accent_color": "#6366f1"
+  }
+}
+```
+
+#### Why This Matters
+
+This is the primary viral mechanism. Every hosted form URL is a public-facing artifact that exposes the Prooflyst brand to end users — the Cal.com / Typeform model. The person leaving a testimonial is often a founder or developer themselves, making them a warm lead.
+
+---
+
+### 6.7 Thank-You Page with CTA
+
+After a testimonial is submitted via the hosted form, the end user sees a confirmation page.
+
+#### Content
+
+- Developer-configured thank-you message (default: "Thanks for your testimonial!")
+- Subtle CTA below: **"Want to collect testimonials for your product? Try Prooflyst →"** with a link to the signup page
+
+#### Controls
+
+- The CTA is always present on the free tier
+- Paid tier can remove it or replace with custom content
+
+This turns every single testimonial submission into a potential acquisition touchpoint.
+
+---
+
+### 6.8 Hosted Testimonial Wall
+
+A public, read-only page displaying a site's approved testimonials.
+
+#### URL
+
+```
+https://prooflyst.com/wall/:site_slug
+```
+
+#### Behavior
+
+- Fetches from `GET /v1/public/testimonials/:site_id` internally
+- Renders testimonials in a clean, responsive masonry/grid layout
+- Includes site name, testimonial count, and Prooflyst branding in footer
+- Developer can link to it as a "See what our customers say" page
+- Open Graph meta tags for social sharing previews
+
+#### Customization
+
+- Accent color (inherits from site branding)
+- Layout preference: grid or list (default: grid)
+
+#### Why This Matters
+
+Creates a shareable, indexable public page for every Prooflyst site. Developers get a zero-effort "social proof" page they can link from landing pages, pitch decks, or investor updates. Every wall page is organic SEO surface area for Prooflyst.
+
+---
+
+### 6.9 Webhook (Basic)
 
 A single webhook event for MVP: `testimonial.submitted`.
 
@@ -318,11 +406,18 @@ This enables Slack/Discord notifications and custom moderation workflows without
 ```
 Site {
   id:          string        // "site_abc123"
+  slug:        string        // unique, URL-safe identifier ("my-saas-app")
   name:        string
   domain:      string        // registered origin for public key validation
   admin_key:   string        // "pl_admin_xxx" (hashed in storage)
   public_key:  string        // "pl_pub_xxx"
   webhook_url: string?       // optional webhook endpoint
+  branding: {
+    heading:      string?    // hosted form heading text
+    thank_you:    string?    // post-submission message
+    accent_color: string?    // hex color for hosted pages
+    wall_layout:  string?    // "grid" | "list"
+  }
   created_at:  timestamp
 }
 ```
@@ -397,41 +492,49 @@ All errors follow a consistent envelope:
 
 ---
 
-## 10. User Flow
+## 10. User Flows
 
-### Step 1: Developer Setup
+### Flow A: Developer with Custom Frontend
 
-Developer signs up → creates a site → receives admin key and public key.
+1. Developer signs up → creates a site via API or CLI → receives admin key, public key, and hosted URLs
+2. Developer builds custom form using SDK or raw API → end user submits → stored as `pending`
+3. Developer receives webhook notification (optional) → approves or deletes via admin API
+4. Developer's frontend calls `GET /v1/public/testimonials/:site_id` → renders with full styling control
 
-### Step 2: End User Submission
+### Flow B: Developer Using Hosted Pages (Zero Frontend Work)
 
-End user fills a developer-built form → form calls `POST /v1/testimonials` with public key → testimonial stored as `pending`.
+1. Developer signs up → creates a site → receives hosted form URL (`prooflyst.com/t/:slug`)
+2. Developer shares the form link in emails, landing pages, or social media
+3. End user visits hosted form → submits testimonial → sees thank-you page with Prooflyst CTA
+4. Developer moderates via admin API
+5. Developer links to hosted wall (`prooflyst.com/wall/:slug`) or fetches via API
 
-### Step 3: Moderation
+### Flow C: Viral Acquisition
 
-Developer receives webhook notification (optional) → reviews pending testimonials → approves or deletes via `PATCH /v1/testimonials/:id`.
-
-### Step 4: Display
-
-Developer's frontend calls `GET /v1/public/testimonials/:site_id` → renders approved testimonials with full styling control.
+1. End user submits testimonial on hosted form
+2. Thank-you page shows: "Want to collect testimonials for your product? Try Prooflyst →"
+3. End user (who is often a developer/founder) clicks through → signs up → creates their own site
+4. Loop repeats
 
 ---
 
 ## 11. System Architecture
 
 ```
-Frontend App (User Form / Display UI)
-        |
-        v
-  Prooflyst API (REST)
-        |
-        v
-  Database (PostgreSQL)
+Developer's App                   Prooflyst Hosted Pages
+(custom form / display)           (form + wall + thank-you)
+        |                                  |
+        v                                  v
+              Prooflyst API (REST)
+                      |
+                      v
+               Database (PostgreSQL)
 ```
 
 ### Components
 
 - **API Server:** Node.js with Fastify
+- **Hosted Pages:** Server-rendered pages for submission form, wall, and thank-you
 - **Database:** PostgreSQL
 - **Validation:** Zod for request/response schemas
 - **Authentication:** API key-based (header or query param)
@@ -443,9 +546,48 @@ Frontend App (User Form / Display UI)
 
 ### React SDK (`@prooflyst/react`)
 
-- `useTestimonials(siteId, options)` hook — fetches approved testimonials
-- `<TestimonialForm />` headless component — handles submission logic, no styling imposed
-- Zero dependencies beyond React
+Open-source (MIT license) from day one. Published on npm for discoverability.
+
+#### Headless Layer
+
+- `useTestimonials(siteId, options)` hook — fetches approved testimonials with pagination
+- `useSubmitTestimonial(siteId, publicKey)` hook — handles form submission, loading/error states
+- Zero styling imposed, full render control
+
+#### Styled Components (Optional)
+
+Ship alongside the headless hooks as opt-in, beautiful defaults:
+
+- `<TestimonialWall />` — responsive grid/list of testimonials with sensible default styling
+- `<TestimonialForm />` — ready-to-use submission form with validation
+- `<TestimonialCard />` — individual testimonial display
+- All styled components accept `className` and `unstyled` props for full override
+
+The styled components serve two purposes: faster developer onboarding (copy-paste and it works) and organic distribution (developers share good-looking components).
+
+#### CLI
+
+```bash
+npx prooflyst init
+```
+
+Interactive setup that:
+1. Prompts for admin key
+2. Creates a site (or selects existing)
+3. Generates a working example component in the current project
+4. Outputs the public key and hosted form URL
+
+The CLI is a tweetable onboarding moment.
+
+### Starter Templates
+
+Framework-specific examples published as public GitHub repos:
+
+- `prooflyst/starter-nextjs`
+- `prooflyst/starter-astro`
+- `prooflyst/starter-remix`
+
+Each template is a working app with testimonial collection and display wired up. One-click deploy to Vercel/Netlify.
 
 Python SDK and other language SDKs are deferred until post-MVP based on user demand.
 
@@ -453,17 +595,50 @@ Python SDK and other language SDKs are deferred until post-MVP based on user dem
 
 ## 13. Virality and Distribution
 
-### Built-in Mechanisms
+### Viral Loop (Built Into the Product)
 
-- **"Powered by Prooflyst" badge** — Optional, enabled by default on free tier. Links back to Prooflyst. Every site using the product becomes a passive awareness driver.
-- **Testimonial submission confirmation** — After submitting, end users see a brief "Submitted via Prooflyst" message (configurable by developer).
-- **CLI onboarding** — `npx prooflyst init` for instant project setup. Shareable, tweetable developer experience.
-- **Open-source React SDK** — Published on npm, discoverable through search and ecosystem.
+The core loop works like this:
 
-### Content and Community
+```
+Developer creates site
+  → shares hosted form link (prooflyst.com/t/slug)
+    → end user submits testimonial
+      → sees thank-you page with Prooflyst CTA
+        → end user is often a founder/dev themselves
+          → signs up → creates their own site → loop repeats
+```
 
-- Template gallery (post-MVP) — example integrations for Next.js, Remix, Astro, etc.
-- Public testimonial showcase — opt-in directory of sites using Prooflyst.
+Every testimonial submission is an acquisition touchpoint. Every hosted page is brand exposure.
+
+### Surface Area (Public Artifacts)
+
+| Artifact                  | URL                                | Brand Exposure To          |
+| ------------------------- | ---------------------------------- | -------------------------- |
+| Hosted submission form    | `prooflyst.com/t/:slug`            | End users leaving reviews  |
+| Hosted testimonial wall   | `prooflyst.com/wall/:slug`         | Visitors, social shares    |
+| Thank-you page CTA        | (shown after hosted form submit)   | End users post-submission  |
+| "Powered by" in SDK       | (footer on styled components)      | Site visitors              |
+| Open-source SDK on npm    | `npmjs.com/package/@prooflyst/react` | Developers searching npm |
+| Starter templates         | `github.com/prooflyst/starter-*`   | Developers on GitHub       |
+| CLI onboarding            | `npx prooflyst init`               | Developers in terminal     |
+
+### Free vs. Paid Branding
+
+| Element                     | Free Tier                     | Paid Tier                      |
+| --------------------------- | ----------------------------- | ------------------------------ |
+| Hosted form footer CTA      | Always shown                  | Removable                      |
+| Thank-you page CTA          | Always shown                  | Replaceable with custom        |
+| Testimonial wall branding   | "Powered by Prooflyst"        | Removable                      |
+| SDK styled component footer | "Powered by Prooflyst"        | Removable                      |
+
+This creates a natural upgrade incentive: developers pay to remove Prooflyst branding once they're serious about their product.
+
+### Community and Content
+
+- **Open-source SDK** — MIT license, accepting contributions. Stars and forks drive organic GitHub discovery.
+- **Starter templates** — one-click deploy repos for major frameworks. Each template shows Prooflyst in action.
+- **"Built with Prooflyst" badge** — developers can add to their README. Links back to prooflyst.com.
+- **Public directory** (post-MVP) — opt-in showcase of sites using Prooflyst, with links to their walls.
 
 ---
 
