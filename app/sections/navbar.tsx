@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
+import { ThemeToggle } from "@/components/theme-toggle";
 import { Zap } from "lucide-react";
 import Link from "next/link";
 
@@ -66,7 +67,8 @@ export function Navbar() {
             Pricing
           </Link>
         </div>
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-3">
+          <ThemeToggle />
           <Link
             href="https://github.com/xyzprtk/prooflyst"
             target="_blank"
