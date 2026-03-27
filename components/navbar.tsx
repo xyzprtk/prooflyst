@@ -1,7 +1,8 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Button } from "@/components/ui/button";
+import { buttonVariants } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { Zap } from "lucide-react";
 import Link from "next/link";
@@ -78,12 +79,12 @@ export function Navbar() {
             <GitHubIcon className="h-4 w-4" />
             <span className="hidden sm:inline">GitHub</span>
           </Link>
-          <Button
-            size="sm"
-            className="h-9 px-5"
+          <Link
+            href="/dashboard/setup"
+            className={cn(buttonVariants({ size: "sm" }), "h-9 px-5")}
           >
             Get Started
-          </Button>
+          </Link>
         </div>
       </div>
     </nav>

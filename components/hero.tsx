@@ -1,6 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ArrowRight, Check } from "lucide-react";
+import Link from "next/link";
 
 export function HeroSection() {
   return (
@@ -24,17 +25,22 @@ export function HeroSection() {
           <p className="text-lg text-muted-foreground leading-relaxed max-w-2xl">
           Stop screenshotting testimonials. Start building a proof system.
           </p>
-          <p className="text-base text-muted-foreground leading-relaxed max-w-2xl mb-8">
+          <p className="text-lg text-muted-foreground leading-relaxed max-w-2xl mb-8">
           Collect, verify, and showcase social proof — without the mess.
           </p>
           
           <div className="flex flex-col sm:flex-row gap-4">
-            <Button size="lg" className="text-base px-8">
+            <Button size="lg" className="text-base px-8" render={<Link href="/dashboard/setup" />}>
               Start Building
               <ArrowRight className="ml-2 h-4 w-4" />
             </Button>
-            <Button size="lg" variant="outline" className="text-base px-8">
-              View Documentation
+            <Button
+              size="lg"
+              variant="outline"
+              className="text-base px-8"
+              render={<Link href="/dashboard/login" />}
+            >
+              Open Dashboard
             </Button>
           </div>
           
