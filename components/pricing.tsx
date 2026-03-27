@@ -58,7 +58,7 @@ export function PricingSection() {
           </Card>
 
           <Card className="border-primary/30 relative overflow-hidden rounded-xl">
-            <div className="absolute top-0 right-0 bg-primary text-white text-xs font-medium px-3 py-1 rounded-bl-lg">
+            <div className="absolute top-0 right-0 bg-primary text-secondary text-xs font-medium px-3 py-1 rounded-bl-lg">
               Popular
             </div>
             <CardContent className="p-8">

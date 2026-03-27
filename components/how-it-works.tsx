@@ -38,7 +38,7 @@ export function HowItWorksSection() {
               <h3 className="text-lg font-semibold mb-2">{step.title}</h3>
               <p className="text-sm text-muted-foreground">{step.description}</p>
               {index < steps.length - 1 && (
-                <div className="hidden md:block absolute top-6 left-full w-full h-px bg-gradient-to-r from-primary/30 to-transparent -translate-x-6" />
+                <div className="hidden md:block absolute top-6 left-[calc(100%+1rem)] w-[calc(100%-2rem)] h-px bg-gradient-to-r from-primary/30 to-transparent" />
               )}
             </div>
           ))}

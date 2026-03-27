@@ -1,10 +1,10 @@
-import { Navbar } from "./sections/navbar";
-import { HeroSection } from "./sections/hero";
-import { FeaturesSection } from "./sections/features";
-import { CodePreviewSection } from "./sections/code-preview";
-import { HowItWorksSection } from "./sections/how-it-works";
-import { PricingSection } from "./sections/pricing";
-import { Footer } from "./sections/footer";
+import { Navbar } from "@/components/navbar";
+import { HeroSection } from "@/components/hero";
+import { FeaturesSection } from "@/components/features";
+import { CodePreviewSection } from "@/components/code-preview";
+import { HowItWorksSection } from "@/components/how-it-works";
+import { PricingSection } from "@/components/pricing";
+import { Footer } from "@/components/footer";
 
 export default function LandingPage() {
   return (
