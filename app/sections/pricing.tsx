@@ -45,7 +45,7 @@ export function PricingSection() {
               </div>
               <ul className="space-y-3 mb-8">
                 {starterFeatures.map((feature) => (
-                  <li key={feature} className="flex items-center gap-2 text-sm">
+                  <li key={feature} className="flex items-center gap-2 text-sm text-foreground">
                     <Check className="h-4 w-4 text-primary" />
                     {feature}
                   </li>
@@ -72,7 +72,7 @@ export function PricingSection() {
               </div>
               <ul className="space-y-3 mb-8">
                 {proFeatures.map((feature) => (
-                  <li key={feature} className="flex items-center gap-2 text-sm">
+                  <li key={feature} className="flex items-center gap-2 text-sm text-foreground">
                     <Check className="h-4 w-4 text-primary" />
                     {feature}
                   </li>

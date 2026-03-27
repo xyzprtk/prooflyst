@@ -32,7 +32,7 @@ export function HowItWorksSection() {
         <div className="grid md:grid-cols-3 gap-8">
           {steps.map((step, index) => (
             <div key={step.number} className="relative">
-              <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-primary text-white font-bold text-xl mb-4">
+              <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-primary text-primary-foreground font-bold text-xl mb-4">
                 {step.number}
               </div>
               <h3 className="text-lg font-semibold mb-2">{step.title}</h3>
