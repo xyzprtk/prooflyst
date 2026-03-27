@@ -37,22 +37,26 @@ export async function POST(request: Request) {
 
   const { slug } = parsed.data;
 
-  try {
-    const existing = await db
+  // Check for existing slug - use allSettled to never throw
+  const [existingResult] = await Promise.allSettled([
+    db
       .select({ id: sites.id })
       .from(sites)
       .where(eq(sites.slug, slug))
-      .limit(1);
+      .limit(1)
+  ]);
 
-    if (existing.length > 0) {
-      return apiError("VALIDATION_ERROR", `Slug "${slug}" is already taken`);
-    }
+  if (existingResult.status === "fulfilled" && existingResult.value.length > 0) {
+    return apiError("VALIDATION_ERROR", `Slug "${slug}" is already taken`);
+  }
 
-    const id = generateSiteId();
-    const publicKey = generatePublicKey();
-    const rawAdminKey = generateAdminKey();
+  const id = generateSiteId();
+  const publicKey = generatePublicKey();
+  const rawAdminKey = generateAdminKey();
 
-    const [site] = await db
+  // Try database insert - use allSettled to never throw
+  const [insertResult] = await Promise.allSettled([
+    db
       .insert(sites)
       .values({
         id,
@@ -64,8 +68,11 @@ export async function POST(request: Request) {
         webhookUrl: parsed.data.webhookUrl,
         branding: parsed.data.branding,
       })
-      .returning();
+      .returning()
+  ]);
 
+  if (insertResult.status === "fulfilled" && insertResult.value.length > 0) {
+    const site = insertResult.value[0];
     return NextResponse.json(
       {
         site: {
@@ -82,45 +89,42 @@ export async function POST(request: Request) {
       },
       { status: 201 }
     );
-  } catch {
-    // Database unavailable, fallback to local-store
-    const existing = await getLocalSiteBySlug(slug);
-    if (existing) {
-      return apiError("VALIDATION_ERROR", `Slug "${slug}" is already taken`);
-    }
-
-    const id = generateSiteId();
-    const publicKey = generatePublicKey();
-    const rawAdminKey = generateAdminKey();
-    const createdAt = new Date().toISOString();
-
-    await insertLocalSite({
-      id,
-      slug: parsed.data.slug,
-      name: parsed.data.name,
-      domain: parsed.data.domain,
-      adminKey: hashKey(rawAdminKey),
-      publicKey,
-      createdAt,
-    });
-
-    return NextResponse.json(
-      {
-        site: {
-          id,
-          slug: parsed.data.slug,
-          name: parsed.data.name,
-          domain: parsed.data.domain,
-          public_key: publicKey,
-          admin_key: rawAdminKey,
-          hosted_form_url: `${process.env.NEXT_PUBLIC_APP_URL}/t/${parsed.data.slug}`,
-          hosted_wall_url: `${process.env.NEXT_PUBLIC_APP_URL}/wall/${parsed.data.slug}`,
-          created_at: createdAt,
-        },
-      },
-      { status: 201 }
-    );
   }
+
+  // Check local store for existing slug
+  const existing = await getLocalSiteBySlug(slug);
+  if (existing) {
+    return apiError("VALIDATION_ERROR", `Slug "${slug}" is already taken`);
+  }
+
+  // Fallback to local store
+  const createdAt = new Date().toISOString();
+  await insertLocalSite({
+    id,
+    slug: parsed.data.slug,
+    name: parsed.data.name,
+    domain: parsed.data.domain,
+    adminKey: hashKey(rawAdminKey),
+    publicKey,
+    createdAt,
+  });
+
+  return NextResponse.json(
+    {
+      site: {
+        id,
+        slug: parsed.data.slug,
+        name: parsed.data.name,
+        domain: parsed.data.domain,
+        public_key: publicKey,
+        admin_key: rawAdminKey,
+        hosted_form_url: `${process.env.NEXT_PUBLIC_APP_URL}/t/${parsed.data.slug}`,
+        hosted_wall_url: `${process.env.NEXT_PUBLIC_APP_URL}/wall/${parsed.data.slug}`,
+        created_at: createdAt,
+      },
+    },
+    { status: 201 }
+  );
 }
 
 export async function GET(request: Request) {
@@ -129,8 +133,9 @@ export async function GET(request: Request) {
     return apiError("UNAUTHORIZED", auth.error);
   }
 
-  try {
-    const allSites = await db
+  // Try database - use allSettled to never throw
+  const [dbResult] = await Promise.allSettled([
+    db
       .select({
         id: sites.id,
         slug: sites.slug,
@@ -140,23 +145,12 @@ export async function GET(request: Request) {
         createdAt: sites.createdAt,
       })
       .from(sites)
-      .where(eq(sites.adminKey, hashKey(request.headers.get("authorization")!.slice(7))));
+      .where(eq(sites.adminKey, hashKey(request.headers.get("authorization")!.slice(7))))
+  ]);
 
+  if (dbResult.status === "fulfilled") {
     return NextResponse.json({
-      sites: allSites.map((s) => ({
-        id: s.id,
-        slug: s.slug,
-        name: s.name,
-        domain: s.domain,
-        public_key: s.publicKey,
-        created_at: s.createdAt,
-      })),
-    });
-  } catch{
-    // Database unavailable, fallback to local-store
-    const localSites = await listLocalSitesByAdminHash(auth.site.adminKey);
-    return NextResponse.json({
-      sites: localSites.map((s) => ({
+      sites: dbResult.value.map((s) => ({
         id: s.id,
         slug: s.slug,
         name: s.name,
@@ -166,4 +160,17 @@ export async function GET(request: Request) {
       })),
     });
   }
+
+  // Database unavailable, fallback to local-store
+  const localSites = await listLocalSitesByAdminHash(auth.site.adminKey);
+  return NextResponse.json({
+    sites: localSites.map((s) => ({
+      id: s.id,
+      slug: s.slug,
+      name: s.name,
+      domain: s.domain,
+      public_key: s.publicKey,
+      created_at: s.createdAt,
+    })),
+  });
 }

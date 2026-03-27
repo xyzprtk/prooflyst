@@ -45,21 +45,19 @@ export async function POST(request: Request) {
   const id = generateTestimonialId();
   const now = new Date();
 
-  try {
-    await db.insert(testimonials).values({
+  // Try database insert - use allSettled to never throw
+  const [insertResult] = await Promise.allSettled([
+    db.insert(testimonials).values({
       id,
       siteId: site_id,
       author: sanitizedAuthor,
       content: sanitizedContent,
       rating,
       status: "pending",
-    });
+    })
+  ]);
 
-    return NextResponse.json(
-      { success: true, message: "Testimonial submitted successfully." },
-      { status: 201 }
-    );
-  } catch {
+  if (insertResult.status === "rejected") {
     // Database unavailable, fallback to local-store
     await insertLocalTestimonial({
       id,
@@ -71,12 +69,12 @@ export async function POST(request: Request) {
       createdAt: now.toISOString(),
       updatedAt: now.toISOString(),
     });
-
-    return NextResponse.json(
-      { success: true, message: "Testimonial submitted successfully." },
-      { status: 201 }
-    );
   }
+
+  return NextResponse.json(
+    { success: true, message: "Testimonial submitted successfully." },
+    { status: 201 }
+  );
 }
 
 export async function GET(request: NextRequest) {
@@ -106,32 +104,36 @@ export async function GET(request: NextRequest) {
     return apiError("FORBIDDEN", "Admin key does not match site");
   }
 
-  try {
-    const conditions = [eq(testimonials.siteId, site_id)];
-    if (status !== "all") {
-      conditions.push(eq(testimonials.status, status));
-    }
+  const conditions = [eq(testimonials.siteId, site_id)];
+  if (status !== "all") {
+    conditions.push(eq(testimonials.status, status));
+  }
 
-    if (cursor) {
-      const decoded = Buffer.from(cursor, "base64url").toString();
-      const orderOp = sort === "oldest" ? gt : lt;
-      conditions.push(orderOp(testimonials.createdAt, new Date(decoded)));
-    }
+  if (cursor) {
+    const decoded = Buffer.from(cursor, "base64url").toString();
+    const orderOp = sort === "oldest" ? gt : lt;
+    conditions.push(orderOp(testimonials.createdAt, new Date(decoded)));
+  }
 
-    const orderBy =
-      sort === "oldest"
-        ? asc(testimonials.createdAt)
-        : sort === "rating"
-          ? desc(testimonials.rating)
-          : desc(testimonials.createdAt);
+  const orderBy =
+    sort === "oldest"
+      ? asc(testimonials.createdAt)
+      : sort === "rating"
+        ? desc(testimonials.rating)
+        : desc(testimonials.createdAt);
 
-    const rows = await db
+  // Try database - use allSettled to never throw
+  const [dbResult] = await Promise.allSettled([
+    db
       .select()
       .from(testimonials)
       .where(and(...conditions))
       .orderBy(orderBy)
-      .limit(limit + 1);
+      .limit(limit + 1)
+  ]);
 
+  if (dbResult.status === "fulfilled") {
+    const rows = dbResult.value;
     const hasMore = rows.length > limit;
     const items = hasMore ? rows.slice(0, limit) : rows;
     const nextCursor = hasMore
@@ -153,41 +155,41 @@ export async function GET(request: NextRequest) {
       next_cursor: nextCursor,
       has_more: hasMore,
     });
-  } catch {
-    // Database unavailable, fallback to local-store
-    const localItems = await getLocalTestimonialsBySiteId(
-      site_id,
-      status === "all" ? undefined : status
-    );
-
-    // Apply simple sorting for local-store
-    const sortedItems =
-      sort === "oldest"
-        ? [...localItems].sort((a, b) =>
-            a.createdAt > b.createdAt ? 1 : -1
-          )
-        : [...localItems].sort((a, b) =>
-            a.createdAt > b.createdAt ? -1 : 1
-          );
-
-    const items = sortedItems.slice(0, limit);
-    const hasMore = sortedItems.length > limit;
-    const nextCursor = hasMore
-      ? Buffer.from(items[items.length - 1].createdAt).toString("base64url")
-      : null;
-
-    return NextResponse.json({
-      testimonials: items.map((t) => ({
-        id: t.id,
-        site_id: t.siteId,
-        author: t.author,
-        content: t.content,
-        rating: t.rating,
-        status: t.status,
-        created_at: t.createdAt,
-      })),
-      next_cursor: nextCursor,
-      has_more: hasMore,
-    });
   }
+
+  // Database unavailable, fallback to local-store
+  const localItems = await getLocalTestimonialsBySiteId(
+    site_id,
+    status === "all" ? undefined : status
+  );
+
+  // Apply simple sorting for local-store
+  const sortedItems =
+    sort === "oldest"
+      ? [...localItems].sort((a, b) =>
+          a.createdAt > b.createdAt ? 1 : -1
+        )
+      : [...localItems].sort((a, b) =>
+          a.createdAt > b.createdAt ? -1 : 1
+        );
+
+  const items = sortedItems.slice(0, limit);
+  const hasMore = sortedItems.length > limit;
+  const nextCursor = hasMore
+    ? Buffer.from(items[items.length - 1].createdAt).toString("base64url")
+    : null;
+
+  return NextResponse.json({
+    testimonials: items.map((t) => ({
+      id: t.id,
+      site_id: t.siteId,
+      author: t.author,
+      content: t.content,
+      rating: t.rating,
+      status: t.status,
+      created_at: t.createdAt,
+    })),
+    next_cursor: nextCursor,
+    has_more: hasMore,
+  });
 }

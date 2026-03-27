@@ -30,8 +30,9 @@ export async function PATCH(
 
   const { id } = await params;
 
-  try {
-    const [updated] = await db
+  // Try database - use allSettled to never throw
+  const [dbResult] = await Promise.allSettled([
+    db
       .update(testimonials)
       .set({
         status: parsed.data.status,
@@ -43,12 +44,11 @@ export async function PATCH(
           eq(testimonials.siteId, auth.site.id)
         )
       )
-      .returning();
+      .returning()
+  ]);
 
-    if (!updated) {
-      return apiError("NOT_FOUND", "Testimonial not found");
-    }
-
+  if (dbResult.status === "fulfilled" && dbResult.value.length > 0) {
+    const updated = dbResult.value[0];
     return NextResponse.json({
       testimonial: {
         id: updated.id,
@@ -56,23 +56,23 @@ export async function PATCH(
         updated_at: updated.updatedAt,
       },
     });
-  } catch {
-    // Database unavailable, fallback to local-store
-    const local = await getLocalTestimonialById(auth.site.id, id);
-    if (!local) {
-      return apiError("NOT_FOUND", "Testimonial not found");
-    }
-
-    await updateLocalTestimonialStatus(auth.site.id, id, parsed.data.status);
-
-    return NextResponse.json({
-      testimonial: {
-        id,
-        status: parsed.data.status,
-        updated_at: new Date().toISOString(),
-      },
-    });
   }
+
+  // Database unavailable or not found, fallback to local-store
+  const local = await getLocalTestimonialById(auth.site.id, id);
+  if (!local) {
+    return apiError("NOT_FOUND", "Testimonial not found");
+  }
+
+  await updateLocalTestimonialStatus(auth.site.id, id, parsed.data.status);
+
+  return NextResponse.json({
+    testimonial: {
+      id,
+      status: parsed.data.status,
+      updated_at: new Date().toISOString(),
+    },
+  });
 }
 
 export async function DELETE(
@@ -86,8 +86,9 @@ export async function DELETE(
 
   const { id } = await params;
 
-  try {
-    const [deleted] = await db
+  // Try database - use allSettled to never throw
+  const [dbResult] = await Promise.allSettled([
+    db
       .update(testimonials)
       .set({
         status: "deleted",
@@ -99,12 +100,11 @@ export async function DELETE(
           eq(testimonials.siteId, auth.site.id)
         )
       )
-      .returning();
+      .returning()
+  ]);
 
-    if (!deleted) {
-      return apiError("NOT_FOUND", "Testimonial not found");
-    }
-
+  if (dbResult.status === "fulfilled" && dbResult.value.length > 0) {
+    const deleted = dbResult.value[0];
     return NextResponse.json({
       testimonial: {
         id: deleted.id,
@@ -112,21 +112,21 @@ export async function DELETE(
         updated_at: deleted.updatedAt,
       },
     });
-  } catch {
-    // Database unavailable, fallback to local-store
-    const local = await getLocalTestimonialById(auth.site.id, id);
-    if (!local) {
-      return apiError("NOT_FOUND", "Testimonial not found");
-    }
-
-    await updateLocalTestimonialStatus(auth.site.id, id, "deleted");
-
-    return NextResponse.json({
-      testimonial: {
-        id,
-        status: "deleted",
-        updated_at: new Date().toISOString(),
-      },
-    });
   }
+
+  // Database unavailable or not found, fallback to local-store
+  const local = await getLocalTestimonialById(auth.site.id, id);
+  if (!local) {
+    return apiError("NOT_FOUND", "Testimonial not found");
+  }
+
+  await updateLocalTestimonialStatus(auth.site.id, id, "deleted");
+
+  return NextResponse.json({
+    testimonial: {
+      id,
+      status: "deleted",
+      updated_at: new Date().toISOString(),
+    },
+  });
 }
