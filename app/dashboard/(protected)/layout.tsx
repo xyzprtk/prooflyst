@@ -12,21 +12,17 @@ import { getAdminKey } from "@/lib/session";
 async function getSiteByAdminKey(adminKey: string): Promise<{ id: string; name: string } | null> {
   const adminHash = hashKey(adminKey);
   
-  // Try database first
-  try {
-    const result = await Promise.resolve(
-      db
-        .select({ id: sites.id, name: sites.name })
-        .from(sites)
-        .where(eq(sites.adminKey, adminHash))
-        .limit(1)
-    ).catch(() => null);
-    
-    if (result && result.length > 0) {
-      return result[0];
-    }
-  } catch {
-    // Database query failed, fall through to local store
+  // Try database first - use allSettled to never throw
+  const [dbResult] = await Promise.allSettled([
+    db
+      .select({ id: sites.id, name: sites.name })
+      .from(sites)
+      .where(eq(sites.adminKey, adminHash))
+      .limit(1)
+  ]);
+  
+  if (dbResult.status === "fulfilled" && dbResult.value.length > 0) {
+    return dbResult.value[0];
   }
 
   // Fall back to local store

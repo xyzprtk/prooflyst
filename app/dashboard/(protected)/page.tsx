@@ -37,13 +37,14 @@ async function updateStatus(formData: FormData, status: "approved" | "pending" |
 
   const adminHash = hashKey(adminKey);
   let site: { id: string; slug: string } | undefined;
-  try {
-    [site] = await db
-      .select({ id: sites.id, slug: sites.slug })
-      .from(sites)
-      .where(eq(sites.adminKey, adminHash))
-      .limit(1);
-  } catch {
+  
+  const [siteResult] = await Promise.allSettled([
+    db.select({ id: sites.id, slug: sites.slug }).from(sites).where(eq(sites.adminKey, adminHash)).limit(1)
+  ]);
+  
+  if (siteResult.status === "fulfilled" && siteResult.value.length > 0) {
+    site = siteResult.value[0];
+  } else {
     const local = await getLocalSiteByAdminHash(adminHash);
     if (local) {
       site = { id: local.id, slug: local.slug };
@@ -52,12 +53,14 @@ async function updateStatus(formData: FormData, status: "approved" | "pending" |
 
   if (!site) return;
 
-  try {
-    await db
+  const [updateResult] = await Promise.allSettled([
+    db
       .update(testimonials)
       .set({ status, updatedAt: new Date() })
-      .where(and(eq(testimonials.id, id), eq(testimonials.siteId, site.id)));
-  } catch {
+      .where(and(eq(testimonials.id, id), eq(testimonials.siteId, site.id)))
+  ]);
+  
+  if (updateResult.status === "rejected") {
     await updateLocalTestimonialStatus(site.id, id, status);
   }
 
@@ -101,25 +104,32 @@ export default async function DashboardPage() {
     updatedAt: Date;
   }> = [];
 
-  try {
-    const adminHash = hashKey(adminKey);
-    [site] = await db
-      .select()
-      .from(sites)
-      .where(eq(sites.adminKey, adminHash))
-      .limit(1);
+  const adminHash = hashKey(adminKey);
+  
+  // Try database first - use allSettled to never throw
+  const [dbSiteResult] = await Promise.allSettled([
+    db.select().from(sites).where(eq(sites.adminKey, adminHash)).limit(1)
+  ]);
 
-    if (site) {
-      rows = await db
+  if (dbSiteResult.status === "fulfilled" && dbSiteResult.value.length > 0) {
+    site = dbSiteResult.value[0];
+
+    // Fetch testimonials from database
+    const [dbTestimonialsResult] = await Promise.allSettled([
+      db
         .select()
         .from(testimonials)
         .where(eq(testimonials.siteId, site.id))
         .orderBy(desc(testimonials.createdAt))
-        .limit(100);
+        .limit(100)
+    ]);
+
+    if (dbTestimonialsResult.status === "fulfilled") {
+      rows = dbTestimonialsResult.value;
     }
-  } catch (error) {
-    console.error("Dashboard page DB query failed:", error);
-    const local = await getLocalSiteByAdminHash(hashKey(adminKey));
+  } else {
+    // Fall back to local store
+    const local = await getLocalSiteByAdminHash(adminHash);
     if (local) {
       site = {
         id: local.id,
