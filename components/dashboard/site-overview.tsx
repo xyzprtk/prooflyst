@@ -41,9 +41,10 @@ export function SiteOverview({ site, appUrl }: SiteOverviewProps) {
         </div>
         <div>
           <p className="text-xs text-muted-foreground">Admin Key</p>
-          <code className="rounded bg-muted px-2 py-1 font-mono text-xs">
-            {site.adminKey.slice(0, 12)}••••••••
-          </code>
+          <code className="rounded bg-muted px-2 py-1 font-mono text-xs">pl_admin_••••••••</code>
+          <p className="mt-1 text-xs text-muted-foreground">
+            Full key was shown during setup and cannot be recovered
+          </p>
         </div>
       </div>
 
