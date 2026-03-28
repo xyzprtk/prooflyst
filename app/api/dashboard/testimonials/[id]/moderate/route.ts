@@ -48,12 +48,17 @@ export async function POST(
     newStatus = "pending";
   }
 
-  await withRetry(async () => {
-    await db
+  const result = await withRetry(async () => {
+    return db
       .update(testimonials)
       .set({ status: newStatus, updatedAt: new Date() })
-      .where(and(eq(testimonials.id, id), eq(testimonials.siteId, site.id)));
+      .where(and(eq(testimonials.id, id), eq(testimonials.siteId, site.id)))
+      .returning();
   });
+
+  if (!result || result.length === 0) {
+    return apiError("NOT_FOUND", "Testimonial not found");
+  }
 
   return NextResponse.json({ success: true, testimonial: { id, status: newStatus } });
 }

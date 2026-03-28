@@ -50,18 +50,23 @@ export function TestimonialsTable({ testimonials }: TestimonialsTableProps) {
           });
           router.refresh();
         } else {
+          const data = await res.json().catch(() => ({}));
+          console.error("Moderation failed:", data.error || data.message || "Unknown error");
           setOptimisticUpdates((prev) => {
             const updates = { ...prev };
             delete updates[id];
             return updates;
           });
+          alert(data.error || data.message || "Failed to update testimonial");
         }
-      } catch {
+      } catch (error) {
+        console.error("Moderation error:", error);
         setOptimisticUpdates((prev) => {
           const updates = { ...prev };
           delete updates[id];
           return updates;
         });
+        alert("Network error. Please try again.");
       }
     });
   };
