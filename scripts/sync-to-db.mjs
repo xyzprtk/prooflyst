@@ -73,7 +73,7 @@ async function main() {
   try {
     await sql`SELECT 1`;
     console.log("✅ Database connection ready\n");
-  } catch (error) {
+  } catch {
     console.log("⚠️  Database warm-up failed, proceeding anyway...\n");
   }
 
