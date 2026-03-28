@@ -16,12 +16,11 @@ interface Testimonial {
 
 interface TestimonialsTableProps {
   testimonials: Testimonial[];
-  stats: { total: number; pending: number; approved: number };
 }
 
 type TabFilter = "all" | "pending" | "approved";
 
-export function TestimonialsTable({ testimonials, stats }: TestimonialsTableProps) {
+export function TestimonialsTable({ testimonials }: TestimonialsTableProps) {
   const [activeTab, setActiveTab] = useState<TabFilter>("all");
   const [isPending, startTransition] = useTransition();
   const [optimisticUpdates, setOptimisticUpdates] = useState<Record<string, "pending" | "approved" | "deleted" | "loading">>({});
