@@ -3,6 +3,7 @@ import { db } from "@/lib/db";
 import { sites } from "@/lib/db/schema";
 import { eq } from "drizzle-orm";
 import { notFound } from "next/navigation";
+import { TestimonialForm } from "@/components/hosted/testimonial-form";
 
 export async function generateMetadata({
   params,
@@ -54,13 +55,13 @@ export default async function HostedFormPage({
           </p>
         </div>
 
-        {/* Testimonial form will be implemented here */}
-        <div
-          className="rounded-lg border-2 border-dashed p-8 text-center text-muted-foreground"
-          style={{ borderColor: accentColor }}
-        >
-          Submission form coming soon
-        </div>
+        <TestimonialForm
+          siteId={site.id}
+          publicKey={site.publicKey}
+          siteName={site.name}
+          accentColor={accentColor}
+          thankYouMessage={site.branding?.thankYou ?? "Thanks for your testimonial!"}
+        />
 
         <footer className="text-center text-xs text-muted-foreground">
           Collect testimonials for your product →{" "}
