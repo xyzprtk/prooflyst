@@ -4,7 +4,6 @@ import { testimonials } from "@/lib/db/schema";
 import { authenticateAdmin } from "@/lib/auth";
 import { moderateTestimonialSchema } from "@/lib/validations";
 import { apiError } from "@/lib/errors";
-import { updateLocalTestimonialStatus, getLocalTestimonialById } from "@/lib/local-store";
 import { eq, and } from "drizzle-orm";
 
 export async function PATCH(
@@ -30,47 +29,29 @@ export async function PATCH(
 
   const { id } = await params;
 
-  // Try database - use allSettled to never throw
-  const [dbResult] = await Promise.allSettled([
-    db
-      .update(testimonials)
-      .set({
-        status: parsed.data.status,
-        updatedAt: new Date(),
-      })
-      .where(
-        and(
-          eq(testimonials.id, id),
-          eq(testimonials.siteId, auth.site.id)
-        )
+  const [updated] = await db
+    .update(testimonials)
+    .set({
+      status: parsed.data.status,
+      updatedAt: new Date(),
+    })
+    .where(
+      and(
+        eq(testimonials.id, id),
+        eq(testimonials.siteId, auth.site.id)
       )
-      .returning()
-  ]);
+    )
+    .returning();
 
-  if (dbResult.status === "fulfilled" && dbResult.value.length > 0) {
-    const updated = dbResult.value[0];
-    return NextResponse.json({
-      testimonial: {
-        id: updated.id,
-        status: updated.status,
-        updated_at: updated.updatedAt,
-      },
-    });
-  }
-
-  // Database unavailable or not found, fallback to local-store
-  const local = await getLocalTestimonialById(auth.site.id, id);
-  if (!local) {
+  if (!updated) {
     return apiError("NOT_FOUND", "Testimonial not found");
   }
 
-  await updateLocalTestimonialStatus(auth.site.id, id, parsed.data.status);
-
   return NextResponse.json({
     testimonial: {
-      id,
-      status: parsed.data.status,
-      updated_at: new Date().toISOString(),
+      id: updated.id,
+      status: updated.status,
+      updated_at: updated.updatedAt,
     },
   });
 }
@@ -86,47 +67,29 @@ export async function DELETE(
 
   const { id } = await params;
 
-  // Try database - use allSettled to never throw
-  const [dbResult] = await Promise.allSettled([
-    db
-      .update(testimonials)
-      .set({
-        status: "deleted",
-        updatedAt: new Date(),
-      })
-      .where(
-        and(
-          eq(testimonials.id, id),
-          eq(testimonials.siteId, auth.site.id)
-        )
+  const [deleted] = await db
+    .update(testimonials)
+    .set({
+      status: "deleted",
+      updatedAt: new Date(),
+    })
+    .where(
+      and(
+        eq(testimonials.id, id),
+        eq(testimonials.siteId, auth.site.id)
       )
-      .returning()
-  ]);
+    )
+    .returning();
 
-  if (dbResult.status === "fulfilled" && dbResult.value.length > 0) {
-    const deleted = dbResult.value[0];
-    return NextResponse.json({
-      testimonial: {
-        id: deleted.id,
-        status: deleted.status,
-        updated_at: deleted.updatedAt,
-      },
-    });
-  }
-
-  // Database unavailable or not found, fallback to local-store
-  const local = await getLocalTestimonialById(auth.site.id, id);
-  if (!local) {
+  if (!deleted) {
     return apiError("NOT_FOUND", "Testimonial not found");
   }
 
-  await updateLocalTestimonialStatus(auth.site.id, id, "deleted");
-
   return NextResponse.json({
     testimonial: {
-      id,
-      status: "deleted",
-      updated_at: new Date().toISOString(),
+      id: deleted.id,
+      status: deleted.status,
+      updated_at: deleted.updatedAt,
     },
   });
 }

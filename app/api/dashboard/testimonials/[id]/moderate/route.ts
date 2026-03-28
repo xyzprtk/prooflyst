@@ -4,7 +4,6 @@ import { db, isDbAvailable } from "@/lib/db";
 import { sites, testimonials } from "@/lib/db/schema";
 import { hashKey } from "@/lib/keys";
 import { getAdminKey } from "@/lib/session";
-import { getLocalSiteByAdminHash, updateLocalTestimonialStatus } from "@/lib/local-store";
 import { apiError } from "@/lib/errors";
 
 export async function POST(
@@ -26,27 +25,15 @@ export async function POST(
   }
 
   const adminHash = hashKey(adminKey);
-  const canUseDb = await isDbAvailable();
-  let siteId: string | undefined;
+  await isDbAvailable();
 
-  if (canUseDb) {
-    const [siteResult] = await Promise.allSettled([
-      db.select({ id: sites.id, slug: sites.slug }).from(sites).where(eq(sites.adminKey, adminHash)).limit(1)
-    ]);
+  const [site] = await db
+    .select({ id: sites.id })
+    .from(sites)
+    .where(eq(sites.adminKey, adminHash))
+    .limit(1);
 
-    if (siteResult.status === "fulfilled" && siteResult.value.length > 0) {
-      siteId = siteResult.value[0].id;
-    }
-  }
-
-  if (!siteId) {
-    const local = await getLocalSiteByAdminHash(adminHash);
-    if (local) {
-      siteId = local.id;
-    }
-  }
-
-  if (!siteId) {
+  if (!site) {
     return apiError("UNAUTHORIZED", "Site not found");
   }
 
@@ -56,22 +43,13 @@ export async function POST(
   } else if (action === "delete") {
     newStatus = "deleted";
   } else {
-    newStatus = "pending"; // restore
+    newStatus = "pending";
   }
 
-  if (canUseDb) {
-    const [updateResult] = await Promise.allSettled([
-      db
-        .update(testimonials)
-        .set({ status: newStatus, updatedAt: new Date() })
-        .where(and(eq(testimonials.id, id), eq(testimonials.siteId, siteId)))
-    ]);
+  await db
+    .update(testimonials)
+    .set({ status: newStatus, updatedAt: new Date() })
+    .where(and(eq(testimonials.id, id), eq(testimonials.siteId, site.id)));
 
-    if (updateResult.status === "fulfilled") {
-      return NextResponse.json({ success: true, testimonial: { id, status: newStatus } });
-    }
-  }
-
-  await updateLocalTestimonialStatus(siteId, id, newStatus);
   return NextResponse.json({ success: true, testimonial: { id, status: newStatus } });
 }

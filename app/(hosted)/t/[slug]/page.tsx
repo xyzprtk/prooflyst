@@ -4,20 +4,14 @@ import { sites } from "@/lib/db/schema";
 import { eq } from "drizzle-orm";
 import { notFound } from "next/navigation";
 import { TestimonialForm } from "@/components/hosted/testimonial-form";
-import { getLocalSiteBySlug } from "@/lib/local-store";
 
 async function getSiteBySlug(slug: string) {
-  try {
-    const [site] = await db
-      .select()
-      .from(sites)
-      .where(eq(sites.slug, slug))
-      .limit(1);
-    if (site) return site;
-  } catch {
-    // Database unavailable, fallback to local store
-  }
-  return getLocalSiteBySlug(slug);
+  const [site] = await db
+    .select()
+    .from(sites)
+    .where(eq(sites.slug, slug))
+    .limit(1);
+  return site;
 }
 
 export async function generateMetadata({

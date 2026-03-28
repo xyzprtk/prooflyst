@@ -22,16 +22,28 @@ export const db = drizzle({ client: sql, schema });
 let dbTablesExist: boolean | null = null;
 let dbCheckPromise: Promise<boolean> | null = null;
 
+class DatabaseUnavailableError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = "DatabaseUnavailableError";
+  }
+}
+
 export async function isDbAvailable(): Promise<boolean> {
   if (dbTablesExist !== null) {
-    return dbTablesExist;
+    if (!dbTablesExist) {
+      throw new DatabaseUnavailableError(
+        "Database is unavailable. Please ensure DATABASE_URL is configured correctly and the database is running."
+      );
+    }
+    return true;
   }
-  
+
   // Only check once at a time
   if (dbCheckPromise) {
     return dbCheckPromise;
   }
-  
+
   dbCheckPromise = (async () => {
     try {
       // Try to query the sites table to see if it exists
@@ -39,16 +51,15 @@ export async function isDbAvailable(): Promise<boolean> {
       dbTablesExist = true;
       return true;
     } catch {
-      if (process.env.NODE_ENV === "development") {
-        console.log("Database tables not found - using local store fallback");
-      }
       dbTablesExist = false;
-      return false;
+      throw new DatabaseUnavailableError(
+        "Database is unavailable. Please ensure DATABASE_URL is configured correctly and the database is running."
+      );
     } finally {
       dbCheckPromise = null;
     }
   })();
-  
+
   return dbCheckPromise;
 }
 

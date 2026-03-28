@@ -2,33 +2,10 @@ import { eq } from "drizzle-orm";
 import { db, isDbAvailable } from "./db";
 import { sites, type Site } from "./db/schema";
 import { hashKey } from "./keys";
-import { getLocalSiteByAdminHash } from "./local-store";
 
 export type AuthResult =
   | { success: true; site: Site }
   | { success: false; error: string; status: number };
-
-function localSiteToSite(localSite: {
-  id: string;
-  slug: string;
-  name: string;
-  domain: string;
-  adminKey: string;
-  publicKey: string;
-  createdAt: string;
-}): Site {
-  return {
-    id: localSite.id,
-    slug: localSite.slug,
-    name: localSite.name,
-    domain: localSite.domain,
-    adminKey: localSite.adminKey,
-    publicKey: localSite.publicKey,
-    webhookUrl: null,
-    branding: null,
-    createdAt: new Date(localSite.createdAt),
-  };
-}
 
 export async function authenticateAdmin(
   request: Request
@@ -52,26 +29,16 @@ export async function authenticateAdmin(
   }
 
   const hashedKey = hashKey(key);
-  const canUseDb = await isDbAvailable();
+  await isDbAvailable();
 
-  if (canUseDb) {
-    const [dbResult] = await Promise.allSettled([
-      db
-        .select()
-        .from(sites)
-        .where(eq(sites.adminKey, hashedKey))
-        .limit(1)
-    ]);
+  const [result] = await db
+    .select()
+    .from(sites)
+    .where(eq(sites.adminKey, hashedKey))
+    .limit(1);
 
-    if (dbResult.status === "fulfilled" && dbResult.value.length > 0) {
-      return { success: true, site: dbResult.value[0] };
-    }
-  }
-
-  // Fall back to local store
-  const localSite = await getLocalSiteByAdminHash(hashedKey);
-  if (localSite) {
-    return { success: true, site: localSiteToSite(localSite) };
+  if (result) {
+    return { success: true, site: result };
   }
 
   return { success: false, error: "Invalid admin key", status: 401 };
@@ -89,39 +56,19 @@ export async function authenticatePublicKey(
     };
   }
 
-  const canUseDb = await isDbAvailable();
+  await isDbAvailable();
 
-  if (canUseDb) {
-    const [dbResult] = await Promise.allSettled([
-      db
-        .select()
-        .from(sites)
-        .where(eq(sites.id, siteId))
-        .limit(1)
-    ]);
+  const [site] = await db
+    .select()
+    .from(sites)
+    .where(eq(sites.id, siteId))
+    .limit(1);
 
-    if (dbResult.status === "fulfilled" && dbResult.value.length > 0) {
-      const site = dbResult.value[0];
-      if (site.publicKey !== publicKey) {
-        return {
-          success: false,
-          error: "Public key does not match site",
-          status: 403,
-        };
-      }
-      return { success: true, site };
-    }
-  }
-
-  // Fall back to local store
-  const { getLocalSiteById } = await import("./local-store");
-  const localSite = await getLocalSiteById(siteId);
-  
-  if (!localSite) {
+  if (!site) {
     return { success: false, error: "Site not found", status: 404 };
   }
 
-  if (localSite.publicKey !== publicKey) {
+  if (site.publicKey !== publicKey) {
     return {
       success: false,
       error: "Public key does not match site",
@@ -129,5 +76,5 @@ export async function authenticatePublicKey(
     };
   }
 
-  return { success: true, site: localSiteToSite(localSite) };
+  return { success: true, site };
 }

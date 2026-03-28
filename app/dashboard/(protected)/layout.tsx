@@ -6,41 +6,19 @@ import { LogoutButton } from "@/components/dashboard/logout-button";
 import { db, isDbAvailable } from "@/lib/db";
 import { sites } from "@/lib/db/schema";
 import { hashKey } from "@/lib/keys";
-import { getLocalSiteByAdminHash } from "@/lib/local-store";
 import { getAdminKey } from "@/lib/session";
 
 async function getSiteByAdminKey(adminKey: string): Promise<{ id: string; name: string } | null> {
   const adminHash = hashKey(adminKey);
-  
-  // Check if database is available before querying
-  const canUseDb = await isDbAvailable();
-  
-  if (canUseDb) {
-    // Try database first - use allSettled to never throw
-    const [dbResult] = await Promise.allSettled([
-      db
-        .select({ id: sites.id, name: sites.name })
-        .from(sites)
-        .where(eq(sites.adminKey, adminHash))
-        .limit(1)
-    ]);
-    
-    if (dbResult.status === "fulfilled" && dbResult.value.length > 0) {
-      return dbResult.value[0];
-    }
-  }
+  await isDbAvailable();
 
-  // Fall back to local store
-  try {
-    const local = await getLocalSiteByAdminHash(adminHash);
-    if (local) {
-      return { id: local.id, name: local.name };
-    }
-  } catch {
-    // Local store also failed
-  }
+  const [site] = await db
+    .select({ id: sites.id, name: sites.name })
+    .from(sites)
+    .where(eq(sites.adminKey, adminHash))
+    .limit(1);
 
-  return null;
+  return site || null;
 }
 
 export default async function ProtectedDashboardLayout({

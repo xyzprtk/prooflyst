@@ -3,50 +3,35 @@ import { db } from "@/lib/db";
 import { sites, testimonials } from "@/lib/db/schema";
 import { eq, and, desc } from "drizzle-orm";
 import { notFound } from "next/navigation";
-import { getLocalSiteBySlug, getLocalTestimonialsBySiteId } from "@/lib/local-store";
 
 async function getSiteBySlug(slug: string) {
-  try {
-    const [site] = await db
-      .select()
-      .from(sites)
-      .where(eq(sites.slug, slug))
-      .limit(1);
-    if (site) return site;
-  } catch {
-    // Database unavailable, fallback to local store
-  }
-  return getLocalSiteBySlug(slug);
+  const [site] = await db
+    .select()
+    .from(sites)
+    .where(eq(sites.slug, slug))
+    .limit(1);
+  return site;
 }
 
 async function getApprovedTestimonials(siteId: string) {
-  try {
-    const results = await db
-      .select({
-        id: testimonials.id,
-        author: testimonials.author,
-        content: testimonials.content,
-        rating: testimonials.rating,
-        createdAt: testimonials.createdAt,
-      })
-      .from(testimonials)
-      .where(
-        and(
-          eq(testimonials.siteId, siteId),
-          eq(testimonials.status, "approved")
-        )
+  const results = await db
+    .select({
+      id: testimonials.id,
+      author: testimonials.author,
+      content: testimonials.content,
+      rating: testimonials.rating,
+      createdAt: testimonials.createdAt,
+    })
+    .from(testimonials)
+    .where(
+      and(
+        eq(testimonials.siteId, siteId),
+        eq(testimonials.status, "approved")
       )
-      .orderBy(desc(testimonials.createdAt))
-      .limit(50);
-    return results.map((t) => ({
-      ...t,
-      createdAt: t.createdAt.toISOString(),
-    }));
-  } catch {
-    // Database unavailable, fallback to local store
-    const localTestimonials = await getLocalTestimonialsBySiteId(siteId, "approved");
-    return localTestimonials.slice(0, 50);
-  }
+    )
+    .orderBy(desc(testimonials.createdAt))
+    .limit(50);
+  return results;
 }
 
 export async function generateMetadata({
