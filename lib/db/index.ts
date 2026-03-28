@@ -18,51 +18,34 @@ function normalizeDatabaseUrl(rawUrl?: string): string {
 const sql = neon(normalizeDatabaseUrl(process.env.DATABASE_URL));
 export const db = drizzle({ client: sql, schema });
 
-// Track if DB tables exist
-let dbTablesExist: boolean | null = null;
-let dbCheckPromise: Promise<boolean> | null = null;
-
-class DatabaseUnavailableError extends Error {
-  constructor(message: string) {
-    super(message);
-    this.name = "DatabaseUnavailableError";
-  }
-}
+// Track if DB connection is valid
+let dbAvailable: boolean | null = null;
 
 export async function isDbAvailable(): Promise<boolean> {
-  if (dbTablesExist !== null) {
-    if (!dbTablesExist) {
-      throw new DatabaseUnavailableError(
+  // Return cached result if available
+  if (dbAvailable !== null) {
+    if (!dbAvailable) {
+      throw new Error(
         "Database is unavailable. Please ensure DATABASE_URL is configured correctly and the database is running."
       );
     }
     return true;
   }
 
-  // Only check once at a time
-  if (dbCheckPromise) {
-    return dbCheckPromise;
+  // Try to connect
+  try {
+    await sql`SELECT 1`;
+    dbAvailable = true;
+    return true;
+  } catch (error) {
+    dbAvailable = false;
+    console.error("Database connection failed:", error instanceof Error ? error.message : error);
+    throw new Error(
+      "Database is unavailable. Please ensure DATABASE_URL is configured correctly and the database is running."
+    );
   }
-
-  dbCheckPromise = (async () => {
-    try {
-      // Try to query the sites table to see if it exists
-      await sql`SELECT 1 FROM sites LIMIT 1`;
-      dbTablesExist = true;
-      return true;
-    } catch {
-      dbTablesExist = false;
-      throw new DatabaseUnavailableError(
-        "Database is unavailable. Please ensure DATABASE_URL is configured correctly and the database is running."
-      );
-    } finally {
-      dbCheckPromise = null;
-    }
-  })();
-
-  return dbCheckPromise;
 }
 
 export function resetDbAvailableFlag() {
-  dbTablesExist = null;
+  dbAvailable = null;
 }
