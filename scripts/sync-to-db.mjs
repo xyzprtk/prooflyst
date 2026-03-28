@@ -80,14 +80,15 @@ async function main() {
     console.log("🏢 Syncing sites...");
     
     for (const site of localData.sites) {
-      // Check if site already exists by ID
+      // Check if site already exists by ID or slug
       const existing = await sql`
-        SELECT id FROM sites WHERE id = ${site.id}
+        SELECT id, slug FROM sites WHERE id = ${site.id} OR slug = ${site.slug}
       `;
 
       if (existing.length > 0) {
         sitesSkipped++;
-        console.log(`   ⏭️  Site ${site.slug} (${site.id}) already exists, skipping`);
+        const reason = existing[0].id === site.id ? 'id exists' : 'slug exists';
+        console.log(`   ⏭️  Site ${site.slug} (${site.id}) already exists (${reason}), skipping`);
         continue;
       }
 
@@ -118,13 +119,24 @@ async function main() {
     
     for (const testimonial of localData.testimonials) {
       // Check if testimonial already exists by ID
-      const existing = await sql`
+      const existingTestimonial = await sql`
         SELECT id FROM testimonials WHERE id = ${testimonial.id}
       `;
 
-      if (existing.length > 0) {
+      if (existingTestimonial.length > 0) {
         testimonialsSkipped++;
         console.log(`   ⏭️  Testimonial ${testimonial.id} already exists, skipping`);
+        continue;
+      }
+
+      // Check if the site exists in the database
+      const siteExists = await sql`
+        SELECT id FROM sites WHERE id = ${testimonial.siteId}
+      `;
+
+      if (siteExists.length === 0) {
+        testimonialsSkipped++;
+        console.log(`   ⚠️  Testimonial ${testimonial.id} references missing site ${testimonial.siteId}, skipping`);
         continue;
       }
 
