@@ -1,7 +1,8 @@
 import { eq } from "drizzle-orm";
-import { db, isDbAvailable } from "./db";
+import { db } from "./db";
 import { sites, type Site } from "./db/schema";
 import { hashKey } from "./keys";
+import { withRetry } from "./retry";
 
 export type AuthResult =
   | { success: true; site: Site }
@@ -29,16 +30,18 @@ export async function authenticateAdmin(
   }
 
   const hashedKey = hashKey(key);
-  await isDbAvailable();
 
-  const [result] = await db
-    .select()
-    .from(sites)
-    .where(eq(sites.adminKey, hashedKey))
-    .limit(1);
+  const site = await withRetry(async () => {
+    const [result] = await db
+      .select()
+      .from(sites)
+      .where(eq(sites.adminKey, hashedKey))
+      .limit(1);
+    return result;
+  });
 
-  if (result) {
-    return { success: true, site: result };
+  if (site) {
+    return { success: true, site };
   }
 
   return { success: false, error: "Invalid admin key", status: 401 };
@@ -56,13 +59,14 @@ export async function authenticatePublicKey(
     };
   }
 
-  await isDbAvailable();
-
-  const [site] = await db
-    .select()
-    .from(sites)
-    .where(eq(sites.id, siteId))
-    .limit(1);
+  const site = await withRetry(async () => {
+    const [result] = await db
+      .select()
+      .from(sites)
+      .where(eq(sites.id, siteId))
+      .limit(1);
+    return result;
+  });
 
   if (!site) {
     return { success: false, error: "Site not found", status: 404 };

@@ -4,6 +4,7 @@ import { testimonials } from "@/lib/db/schema";
 import { authenticateAdmin } from "@/lib/auth";
 import { moderateTestimonialSchema } from "@/lib/validations";
 import { apiError } from "@/lib/errors";
+import { withRetry } from "@/lib/retry";
 import { eq, and } from "drizzle-orm";
 
 export async function PATCH(
@@ -29,19 +30,21 @@ export async function PATCH(
 
   const { id } = await params;
 
-  const [updated] = await db
-    .update(testimonials)
-    .set({
-      status: parsed.data.status,
-      updatedAt: new Date(),
-    })
-    .where(
-      and(
-        eq(testimonials.id, id),
-        eq(testimonials.siteId, auth.site.id)
+  const [updated] = await withRetry(async () => {
+    return db
+      .update(testimonials)
+      .set({
+        status: parsed.data.status,
+        updatedAt: new Date(),
+      })
+      .where(
+        and(
+          eq(testimonials.id, id),
+          eq(testimonials.siteId, auth.site.id)
+        )
       )
-    )
-    .returning();
+      .returning();
+  });
 
   if (!updated) {
     return apiError("NOT_FOUND", "Testimonial not found");
@@ -67,19 +70,21 @@ export async function DELETE(
 
   const { id } = await params;
 
-  const [deleted] = await db
-    .update(testimonials)
-    .set({
-      status: "deleted",
-      updatedAt: new Date(),
-    })
-    .where(
-      and(
-        eq(testimonials.id, id),
-        eq(testimonials.siteId, auth.site.id)
+  const [deleted] = await withRetry(async () => {
+    return db
+      .update(testimonials)
+      .set({
+        status: "deleted",
+        updatedAt: new Date(),
+      })
+      .where(
+        and(
+          eq(testimonials.id, id),
+          eq(testimonials.siteId, auth.site.id)
+        )
       )
-    )
-    .returning();
+      .returning();
+  });
 
   if (!deleted) {
     return apiError("NOT_FOUND", "Testimonial not found");

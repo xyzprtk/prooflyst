@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { db, isDbAvailable } from "@/lib/db";
+import { db } from "@/lib/db";
 import { sites } from "@/lib/db/schema";
 import { authenticateAdmin } from "@/lib/auth";
 import { createSiteSchema } from "@/lib/validations";
@@ -10,6 +10,7 @@ import {
   generateAdminKey,
   hashKey,
 } from "@/lib/keys";
+import { withRetry } from "@/lib/retry";
 import { eq } from "drizzle-orm";
 
 export async function POST(request: Request) {
@@ -31,14 +32,16 @@ export async function POST(request: Request) {
   }
 
   const { slug } = parsed.data;
-  await isDbAvailable();
 
   // Check for existing slug
-  const [existing] = await db
-    .select({ id: sites.id })
-    .from(sites)
-    .where(eq(sites.slug, slug))
-    .limit(1);
+  const existing = await withRetry(async () => {
+    const [result] = await db
+      .select({ id: sites.id })
+      .from(sites)
+      .where(eq(sites.slug, slug))
+      .limit(1);
+    return result;
+  });
 
   if (existing) {
     return apiError("VALIDATION_ERROR", `Slug "${slug}" is already taken`);
@@ -49,19 +52,21 @@ export async function POST(request: Request) {
   const rawAdminKey = generateAdminKey();
   const adminHash = hashKey(rawAdminKey);
 
-  const [site] = await db
-    .insert(sites)
-    .values({
-      id,
-      slug: parsed.data.slug,
-      name: parsed.data.name,
-      domain: parsed.data.domain,
-      adminKey: adminHash,
-      publicKey,
-      webhookUrl: parsed.data.webhookUrl,
-      branding: parsed.data.branding,
-    })
-    .returning();
+  const [site] = await withRetry(async () => {
+    return db
+      .insert(sites)
+      .values({
+        id,
+        slug: parsed.data.slug,
+        name: parsed.data.name,
+        domain: parsed.data.domain,
+        adminKey: adminHash,
+        publicKey,
+        webhookUrl: parsed.data.webhookUrl,
+        branding: parsed.data.branding,
+      })
+      .returning();
+  });
 
   return NextResponse.json(
     {
@@ -87,22 +92,22 @@ export async function GET(request: Request) {
     return apiError("UNAUTHORIZED", auth.error);
   }
 
-  await isDbAvailable();
-
   const adminKey = request.headers.get("authorization")!.slice(7);
   const adminHash = hashKey(adminKey);
 
-  const siteList = await db
-    .select({
-      id: sites.id,
-      slug: sites.slug,
-      name: sites.name,
-      domain: sites.domain,
-      publicKey: sites.publicKey,
-      createdAt: sites.createdAt,
-    })
-    .from(sites)
-    .where(eq(sites.adminKey, adminHash));
+  const siteList = await withRetry(async () => {
+    return db
+      .select({
+        id: sites.id,
+        slug: sites.slug,
+        name: sites.name,
+        domain: sites.domain,
+        publicKey: sites.publicKey,
+        createdAt: sites.createdAt,
+      })
+      .from(sites)
+      .where(eq(sites.adminKey, adminHash));
+  });
 
   return NextResponse.json({
     sites: siteList.map((s) => ({

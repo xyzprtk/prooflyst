@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { db, isDbAvailable } from "@/lib/db";
+import { db } from "@/lib/db";
 import { testimonials } from "@/lib/db/schema";
 import { authenticateAdmin, authenticatePublicKey } from "@/lib/auth";
 import {
@@ -9,6 +9,7 @@ import {
 import { apiError } from "@/lib/errors";
 import { generateTestimonialId } from "@/lib/keys";
 import { sanitizeString } from "@/lib/sanitize";
+import { withRetry } from "@/lib/retry";
 import { eq, and, desc, asc, lt, gt } from "drizzle-orm";
 
 export async function POST(request: Request) {
@@ -37,17 +38,17 @@ export async function POST(request: Request) {
     );
   }
 
-  await isDbAvailable();
-
   const id = generateTestimonialId();
 
-  await db.insert(testimonials).values({
-    id,
-    siteId: site_id,
-    author: sanitizedAuthor,
-    content: sanitizedContent,
-    rating,
-    status: "pending",
+  await withRetry(async () => {
+    await db.insert(testimonials).values({
+      id,
+      siteId: site_id,
+      author: sanitizedAuthor,
+      content: sanitizedContent,
+      rating,
+      status: "pending",
+    });
   });
 
   return NextResponse.json(
@@ -83,8 +84,6 @@ export async function GET(request: NextRequest) {
     return apiError("FORBIDDEN", "Admin key does not match site");
   }
 
-  await isDbAvailable();
-
   const conditions = [eq(testimonials.siteId, site_id)];
   if (status !== "all") {
     conditions.push(eq(testimonials.status, status));
@@ -103,12 +102,14 @@ export async function GET(request: NextRequest) {
         ? desc(testimonials.rating)
         : desc(testimonials.createdAt);
 
-  const rows = await db
-    .select()
-    .from(testimonials)
-    .where(and(...conditions))
-    .orderBy(orderBy)
-    .limit(limit + 1);
+  const rows = await withRetry(async () => {
+    return db
+      .select()
+      .from(testimonials)
+      .where(and(...conditions))
+      .orderBy(orderBy)
+      .limit(limit + 1);
+  });
 
   const hasMore = rows.length > limit;
   const items = hasMore ? rows.slice(0, limit) : rows;

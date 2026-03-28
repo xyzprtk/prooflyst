@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { db, isDbAvailable } from "@/lib/db";
+import { db } from "@/lib/db";
 import { sites } from "@/lib/db/schema";
 import {
   generateSiteId,
@@ -8,6 +8,7 @@ import {
   hashKey,
 } from "@/lib/keys";
 import { apiError } from "@/lib/errors";
+import { withRetry } from "@/lib/retry";
 import { eq } from "drizzle-orm";
 
 export async function POST(request: Request) {
@@ -25,14 +26,15 @@ export async function POST(request: Request) {
     );
   }
 
-  await isDbAvailable();
-
   // Check for existing slug
-  const [existing] = await db
-    .select({ id: sites.id })
-    .from(sites)
-    .where(eq(sites.slug, slug))
-    .limit(1);
+  const existing = await withRetry(async () => {
+    const [result] = await db
+      .select({ id: sites.id })
+      .from(sites)
+      .where(eq(sites.slug, slug))
+      .limit(1);
+    return result;
+  });
 
   if (existing) {
     return apiError("VALIDATION_ERROR", `Slug "${slug}" is already taken`);
@@ -43,13 +45,15 @@ export async function POST(request: Request) {
   const rawAdminKey = generateAdminKey();
   const adminHash = hashKey(rawAdminKey);
 
-  await db.insert(sites).values({
-    id,
-    slug,
-    name,
-    domain,
-    adminKey: adminHash,
-    publicKey,
+  await withRetry(async () => {
+    await db.insert(sites).values({
+      id,
+      slug,
+      name,
+      domain,
+      adminKey: adminHash,
+      publicKey,
+    });
   });
 
   return NextResponse.json(

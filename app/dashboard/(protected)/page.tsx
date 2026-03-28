@@ -1,9 +1,10 @@
 import { redirect } from "next/navigation";
 import { desc, eq } from "drizzle-orm";
-import { db, isDbAvailable } from "@/lib/db";
+import { db } from "@/lib/db";
 import { sites, testimonials } from "@/lib/db/schema";
 import { getAdminKey } from "@/lib/session";
 import { hashKey } from "@/lib/keys";
+import { withRetry } from "@/lib/retry";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { StatsCards } from "@/components/dashboard/stats-cards";
 import { SiteOverview } from "@/components/dashboard/site-overview";
@@ -15,26 +16,29 @@ export default async function DashboardPage() {
     redirect("/dashboard/login");
   }
 
-  await isDbAvailable();
-
   const adminHash = hashKey(adminKey);
 
-  const [site] = await db
-    .select()
-    .from(sites)
-    .where(eq(sites.adminKey, adminHash))
-    .limit(1);
+  const site = await withRetry(async () => {
+    const [result] = await db
+      .select()
+      .from(sites)
+      .where(eq(sites.adminKey, adminHash))
+      .limit(1);
+    return result;
+  });
 
   if (!site) {
     redirect("/dashboard/setup");
   }
 
-  const rows = await db
-    .select()
-    .from(testimonials)
-    .where(eq(testimonials.siteId, site.id))
-    .orderBy(desc(testimonials.createdAt))
-    .limit(100);
+  const rows = await withRetry(async () => {
+    return db
+      .select()
+      .from(testimonials)
+      .where(eq(testimonials.siteId, site.id))
+      .orderBy(desc(testimonials.createdAt))
+      .limit(100);
+  });
 
   const stats = {
     total: rows.filter((r) => r.status !== "deleted").length,

@@ -1,10 +1,11 @@
 import { NextResponse } from "next/server";
 import { eq, and } from "drizzle-orm";
-import { db, isDbAvailable } from "@/lib/db";
+import { db } from "@/lib/db";
 import { sites, testimonials } from "@/lib/db/schema";
 import { hashKey } from "@/lib/keys";
 import { getAdminKey } from "@/lib/session";
 import { apiError } from "@/lib/errors";
+import { withRetry } from "@/lib/retry";
 
 export async function POST(
   request: Request,
@@ -25,13 +26,14 @@ export async function POST(
   }
 
   const adminHash = hashKey(adminKey);
-  await isDbAvailable();
 
-  const [site] = await db
-    .select({ id: sites.id })
-    .from(sites)
-    .where(eq(sites.adminKey, adminHash))
-    .limit(1);
+  const [site] = await withRetry(async () => {
+    return db
+      .select({ id: sites.id })
+      .from(sites)
+      .where(eq(sites.adminKey, adminHash))
+      .limit(1);
+  });
 
   if (!site) {
     return apiError("UNAUTHORIZED", "Site not found");
@@ -46,10 +48,12 @@ export async function POST(
     newStatus = "pending";
   }
 
-  await db
-    .update(testimonials)
-    .set({ status: newStatus, updatedAt: new Date() })
-    .where(and(eq(testimonials.id, id), eq(testimonials.siteId, site.id)));
+  await withRetry(async () => {
+    await db
+      .update(testimonials)
+      .set({ status: newStatus, updatedAt: new Date() })
+      .where(and(eq(testimonials.id, id), eq(testimonials.siteId, site.id)));
+  });
 
   return NextResponse.json({ success: true, testimonial: { id, status: newStatus } });
 }

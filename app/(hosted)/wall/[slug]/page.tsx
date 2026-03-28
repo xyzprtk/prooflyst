@@ -3,35 +3,39 @@ import { db } from "@/lib/db";
 import { sites, testimonials } from "@/lib/db/schema";
 import { eq, and, desc } from "drizzle-orm";
 import { notFound } from "next/navigation";
+import { withRetry } from "@/lib/retry";
 
 async function getSiteBySlug(slug: string) {
-  const [site] = await db
-    .select()
-    .from(sites)
-    .where(eq(sites.slug, slug))
-    .limit(1);
-  return site;
+  return withRetry(async () => {
+    const [site] = await db
+      .select()
+      .from(sites)
+      .where(eq(sites.slug, slug))
+      .limit(1);
+    return site;
+  });
 }
 
 async function getApprovedTestimonials(siteId: string) {
-  const results = await db
-    .select({
-      id: testimonials.id,
-      author: testimonials.author,
-      content: testimonials.content,
-      rating: testimonials.rating,
-      createdAt: testimonials.createdAt,
-    })
-    .from(testimonials)
-    .where(
-      and(
-        eq(testimonials.siteId, siteId),
-        eq(testimonials.status, "approved")
+  return withRetry(async () => {
+    return db
+      .select({
+        id: testimonials.id,
+        author: testimonials.author,
+        content: testimonials.content,
+        rating: testimonials.rating,
+        createdAt: testimonials.createdAt,
+      })
+      .from(testimonials)
+      .where(
+        and(
+          eq(testimonials.siteId, siteId),
+          eq(testimonials.status, "approved")
+        )
       )
-    )
-    .orderBy(desc(testimonials.createdAt))
-    .limit(50);
-  return results;
+      .orderBy(desc(testimonials.createdAt))
+      .limit(50);
+  });
 }
 
 export async function generateMetadata({

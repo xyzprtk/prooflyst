@@ -3,15 +3,18 @@ import { db } from "@/lib/db";
 import { sites } from "@/lib/db/schema";
 import { eq } from "drizzle-orm";
 import { notFound } from "next/navigation";
+import { withRetry } from "@/lib/retry";
 import { TestimonialForm } from "@/components/hosted/testimonial-form";
 
 async function getSiteBySlug(slug: string) {
-  const [site] = await db
-    .select()
-    .from(sites)
-    .where(eq(sites.slug, slug))
-    .limit(1);
-  return site;
+  return withRetry(async () => {
+    const [site] = await db
+      .select()
+      .from(sites)
+      .where(eq(sites.slug, slug))
+      .limit(1);
+    return site;
+  });
 }
 
 export async function generateMetadata({

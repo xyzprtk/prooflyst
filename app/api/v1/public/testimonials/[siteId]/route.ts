@@ -3,6 +3,7 @@ import { db } from "@/lib/db";
 import { testimonials } from "@/lib/db/schema";
 import { publicListSchema } from "@/lib/validations";
 import { apiError } from "@/lib/errors";
+import { withRetry } from "@/lib/retry";
 import { eq, and, desc, asc, lt, gt } from "drizzle-orm";
 
 export async function GET(
@@ -42,18 +43,20 @@ export async function GET(
       ? asc(testimonials.createdAt)
       : desc(testimonials.createdAt);
 
-  const rows = await db
-    .select({
-      id: testimonials.id,
-      author: testimonials.author,
-      content: testimonials.content,
-      rating: testimonials.rating,
-      createdAt: testimonials.createdAt,
-    })
-    .from(testimonials)
-    .where(and(...conditions))
-    .orderBy(orderBy)
-    .limit(limit + 1);
+  const rows = await withRetry(async () => {
+    return db
+      .select({
+        id: testimonials.id,
+        author: testimonials.author,
+        content: testimonials.content,
+        rating: testimonials.rating,
+        createdAt: testimonials.createdAt,
+      })
+      .from(testimonials)
+      .where(and(...conditions))
+      .orderBy(orderBy)
+      .limit(limit + 1);
+  });
 
   const hasMore = rows.length > limit;
   const items = hasMore ? rows.slice(0, limit) : rows;

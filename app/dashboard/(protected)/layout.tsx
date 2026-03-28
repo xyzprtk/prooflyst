@@ -3,22 +3,23 @@ import Link from "next/link";
 import { eq } from "drizzle-orm";
 import { Zap } from "lucide-react";
 import { LogoutButton } from "@/components/dashboard/logout-button";
-import { db, isDbAvailable } from "@/lib/db";
+import { db } from "@/lib/db";
 import { sites } from "@/lib/db/schema";
 import { hashKey } from "@/lib/keys";
 import { getAdminKey } from "@/lib/session";
+import { withRetry } from "@/lib/retry";
 
 async function getSiteByAdminKey(adminKey: string): Promise<{ id: string; name: string } | null> {
   const adminHash = hashKey(adminKey);
-  await isDbAvailable();
 
-  const [site] = await db
-    .select({ id: sites.id, name: sites.name })
-    .from(sites)
-    .where(eq(sites.adminKey, adminHash))
-    .limit(1);
-
-  return site || null;
+  return withRetry(async () => {
+    const [site] = await db
+      .select({ id: sites.id, name: sites.name })
+      .from(sites)
+      .where(eq(sites.adminKey, adminHash))
+      .limit(1);
+    return site || null;
+  });
 }
 
 export default async function ProtectedDashboardLayout({

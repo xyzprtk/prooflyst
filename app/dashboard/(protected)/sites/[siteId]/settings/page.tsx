@@ -1,10 +1,11 @@
 import Link from "next/link";
 import { and, eq } from "drizzle-orm";
 import { notFound, redirect } from "next/navigation";
-import { db, isDbAvailable } from "@/lib/db";
+import { db } from "@/lib/db";
 import { sites } from "@/lib/db/schema";
 import { getAdminKey } from "@/lib/session";
 import { hashKey } from "@/lib/keys";
+import { withRetry } from "@/lib/retry";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 export default async function SiteSettingsPage({
@@ -20,13 +21,15 @@ export default async function SiteSettingsPage({
   }
 
   const adminHash = hashKey(adminKey);
-  await isDbAvailable();
 
-  const [site] = await db
-    .select()
-    .from(sites)
-    .where(and(eq(sites.id, siteId), eq(sites.adminKey, adminHash)))
-    .limit(1);
+  const site = await withRetry(async () => {
+    const [result] = await db
+      .select()
+      .from(sites)
+      .where(and(eq(sites.id, siteId), eq(sites.adminKey, adminHash)))
+      .limit(1);
+    return result;
+  });
 
   if (!site) {
     notFound();
