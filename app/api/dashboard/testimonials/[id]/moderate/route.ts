@@ -21,8 +21,8 @@ export async function POST(
   const body = await request.json().catch(() => ({}));
   const action = body.action as string;
 
-  if (action !== "approve" && action !== "delete") {
-    return apiError("VALIDATION_ERROR", "Action must be 'approve' or 'delete'");
+  if (action !== "approve" && action !== "delete" && action !== "restore") {
+    return apiError("VALIDATION_ERROR", "Action must be 'approve', 'delete', or 'restore'");
   }
 
   const adminHash = hashKey(adminKey);
@@ -50,7 +50,14 @@ export async function POST(
     return apiError("UNAUTHORIZED", "Site not found");
   }
 
-  const newStatus = action === "approve" ? "approved" : "deleted";
+  let newStatus: "approved" | "deleted" | "pending";
+  if (action === "approve") {
+    newStatus = "approved";
+  } else if (action === "delete") {
+    newStatus = "deleted";
+  } else {
+    newStatus = "pending"; // restore
+  }
 
   if (canUseDb) {
     const [updateResult] = await Promise.allSettled([

@@ -18,7 +18,7 @@ interface TestimonialsTableProps {
   testimonials: Testimonial[];
 }
 
-type TabFilter = "all" | "pending" | "approved";
+type TabFilter = "all" | "pending" | "approved" | "deleted";
 
 export function TestimonialsTable({ testimonials }: TestimonialsTableProps) {
   const [activeTab, setActiveTab] = useState<TabFilter>("all");
@@ -31,7 +31,7 @@ export function TestimonialsTable({ testimonials }: TestimonialsTableProps) {
     return t.status === activeTab;
   });
 
-  const handleModerate = async (id: string, action: "approve" | "delete") => {
+  const handleModerate = async (id: string, action: "approve" | "delete" | "restore") => {
     setOptimisticUpdates((prev) => ({ ...prev, [id]: "loading" }));
 
     startTransition(async () => {
@@ -66,41 +66,47 @@ export function TestimonialsTable({ testimonials }: TestimonialsTableProps) {
     });
   };
 
-  const getTestimonialsWithStats = () => {
-    const all = testimonials.filter((t) => t.status !== "deleted");
-    const pending = testimonials.filter((t) => t.status === "pending");
-    const approved = testimonials.filter((t) => t.status === "approved");
-    return { all, pending, approved };
+  const counts = {
+    all: testimonials.filter((t) => t.status !== "deleted").length,
+    pending: testimonials.filter((t) => t.status === "pending").length,
+    approved: testimonials.filter((t) => t.status === "approved").length,
+    deleted: testimonials.filter((t) => t.status === "deleted").length,
   };
-
-  const counts = getTestimonialsWithStats();
 
   return (
     <Card>
       <CardHeader className="pb-3">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <CardTitle>Testimonials</CardTitle>
-          <div className="flex gap-1 rounded-lg bg-muted p-1">
+          <div className="flex flex-wrap gap-1 rounded-lg bg-muted p-1">
             <TabButton
               active={activeTab === "all"}
               onClick={() => setActiveTab("all")}
-              count={counts.all.length}
+              count={counts.all}
             >
               All
             </TabButton>
             <TabButton
               active={activeTab === "pending"}
               onClick={() => setActiveTab("pending")}
-              count={counts.pending.length}
+              count={counts.pending}
             >
               Pending
             </TabButton>
             <TabButton
               active={activeTab === "approved"}
               onClick={() => setActiveTab("approved")}
-              count={counts.approved.length}
+              count={counts.approved}
             >
               Approved
+            </TabButton>
+            <TabButton
+              active={activeTab === "deleted"}
+              onClick={() => setActiveTab("deleted")}
+              count={counts.deleted}
+              variant="deleted"
+            >
+              Trash
             </TabButton>
           </div>
         </div>
@@ -112,7 +118,9 @@ export function TestimonialsTable({ testimonials }: TestimonialsTableProps) {
               ? "No testimonials yet."
               : activeTab === "pending"
                 ? "No pending testimonials."
-                : "No approved testimonials."}
+                : activeTab === "approved"
+                  ? "No approved testimonials."
+                  : "Trash is empty."}
           </p>
         ) : (
           <div className="overflow-x-auto">
@@ -154,13 +162,23 @@ export function TestimonialsTable({ testimonials }: TestimonialsTableProps) {
                       <td className="py-3 pr-0">
                         <div className="flex flex-wrap items-center gap-2">
                           {row.status === "pending" && (
-                            <Button
-                              size="sm"
-                              onClick={() => handleModerate(row.id, "approve")}
-                              disabled={isLoading || isPending}
-                            >
-                              {isLoading ? "..." : "Approve"}
-                            </Button>
+                            <>
+                              <Button
+                                size="sm"
+                                onClick={() => handleModerate(row.id, "approve")}
+                                disabled={isLoading || isPending}
+                              >
+                                {isLoading ? "..." : "Approve"}
+                              </Button>
+                              <Button
+                                size="sm"
+                                variant="destructive"
+                                onClick={() => handleModerate(row.id, "delete")}
+                                disabled={isLoading || isPending}
+                              >
+                                {isLoading ? "..." : "Delete"}
+                              </Button>
+                            </>
                           )}
                           {row.status === "approved" && (
                             <Button
@@ -172,14 +190,14 @@ export function TestimonialsTable({ testimonials }: TestimonialsTableProps) {
                               {isLoading ? "..." : "Delete"}
                             </Button>
                           )}
-                          {row.status === "pending" && (
+                          {row.status === "deleted" && (
                             <Button
                               size="sm"
-                              variant="destructive"
-                              onClick={() => handleModerate(row.id, "delete")}
+                              variant="outline"
+                              onClick={() => handleModerate(row.id, "restore")}
                               disabled={isLoading || isPending}
                             >
-                              {isLoading ? "..." : "Delete"}
+                              {isLoading ? "..." : "Restore"}
                             </Button>
                           )}
                         </div>
@@ -201,11 +219,13 @@ function TabButton({
   onClick,
   count,
   children,
+  variant,
 }: {
   active: boolean;
   onClick: () => void;
   count: number;
   children: React.ReactNode;
+  variant?: "deleted";
 }) {
   return (
     <button
@@ -213,11 +233,15 @@ function TabButton({
       className={`rounded-md px-3 py-1 text-sm font-medium transition-colors ${
         active
           ? "bg-background text-foreground shadow-sm"
-          : "text-muted-foreground hover:text-foreground"
+          : variant === "deleted"
+            ? "text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300"
+            : "text-muted-foreground hover:text-foreground"
       }`}
     >
       {children}{" "}
-      <span className={`ml-1 ${active ? "text-muted-foreground" : ""}`}>({count})</span>
+      <span className={`ml-1 ${active ? "text-muted-foreground" : ""} ${variant === "deleted" && !active ? "text-red-500" : ""}`}>
+        ({count})
+      </span>
     </button>
   );
 }

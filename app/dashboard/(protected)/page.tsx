@@ -95,6 +95,7 @@ export default async function DashboardPage() {
     total: rows.filter((r) => r.status !== "deleted").length,
     approved: rows.filter((r) => r.status === "approved").length,
     pending: rows.filter((r) => r.status === "pending").length,
+    deleted: rows.filter((r) => r.status === "deleted").length,
   };
 
   const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
@@ -108,7 +109,7 @@ export default async function DashboardPage() {
         </p>
       </div>
 
-      <StatsCards total={stats.total} pending={stats.pending} approved={stats.approved} />
+      <StatsCards total={stats.total} pending={stats.pending} approved={stats.approved} deleted={stats.deleted} />
 
       <Card>
         <CardHeader>
