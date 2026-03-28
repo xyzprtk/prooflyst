@@ -20,6 +20,11 @@ export const db = drizzle({ client: sql, schema });
 
 // Track if DB connection is valid
 let dbAvailable: boolean | null = null;
+let checkPromise: Promise<boolean> | null = null;
+
+async function sleep(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
 
 export async function isDbAvailable(): Promise<boolean> {
   // Return cached result if available
@@ -32,17 +37,44 @@ export async function isDbAvailable(): Promise<boolean> {
     return true;
   }
 
-  // Try to connect
-  try {
-    await sql`SELECT 1`;
-    dbAvailable = true;
-    return true;
-  } catch (error) {
+  // If already checking, wait for result
+  if (checkPromise) {
+    return checkPromise;
+  }
+
+  // Start retry loop
+  checkPromise = (async () => {
+    const maxRetries = 3;
+    let lastError: Error | null = null;
+
+    for (let attempt = 1; attempt <= maxRetries; attempt++) {
+      try {
+        await sql`SELECT 1`;
+        dbAvailable = true;
+        return true;
+      } catch (error) {
+        lastError = error instanceof Error ? error : new Error(String(error));
+        
+        if (attempt < maxRetries) {
+          const delay = attempt * 1000;
+          console.log(`Database connection attempt ${attempt} failed, retrying in ${delay}ms...`);
+          await sleep(delay);
+        }
+      }
+    }
+
+    // All retries failed
     dbAvailable = false;
-    console.error("Database connection failed:", error instanceof Error ? error.message : error);
+    console.error("Database connection failed:", lastError?.message);
     throw new Error(
       "Database is unavailable. Please ensure DATABASE_URL is configured correctly and the database is running."
     );
+  })();
+
+  try {
+    return await checkPromise;
+  } finally {
+    checkPromise = null;
   }
 }
 
