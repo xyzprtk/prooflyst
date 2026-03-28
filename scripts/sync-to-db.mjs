@@ -47,10 +47,35 @@ if (!process.env.DATABASE_URL) {
 
 const sql = neon(process.env.DATABASE_URL);
 
+// Retry helper with exponential backoff
+async function retry(operation, label, maxRetries = 3) {
+  let lastError;
+  for (let attempt = 1; attempt <= maxRetries; attempt++) {
+    try {
+      return await operation();
+    } catch (error) {
+      lastError = error;
+      const delay = Math.min(1000 * Math.pow(2, attempt - 1), 5000);
+      console.log(`   ⚠️  ${label} attempt ${attempt} failed, retrying in ${delay}ms...`);
+      await new Promise((resolve) => setTimeout(resolve, delay));
+    }
+  }
+  throw lastError;
+}
+
 const LOCAL_STORE_PATH = join(process.cwd(), ".data", "local-store.json");
 
 async function main() {
   console.log("🔄 Starting sync from local store to database...\n");
+
+  // Warm up the database connection (Neon databases can be cold)
+  console.log("🔥 Warming up database connection...");
+  try {
+    await sql`SELECT 1`;
+    console.log("✅ Database connection ready\n");
+  } catch (error) {
+    console.log("⚠️  Database warm-up failed, proceeding anyway...\n");
+  }
 
   if (!existsSync(LOCAL_STORE_PATH)) {
     console.log("📁 No local store file found. Nothing to sync.");
@@ -72,25 +97,28 @@ async function main() {
     
     for (const site of localData.sites) {
       try {
-        // Check if site already exists by ID or slug
-        const existing = await sql`
-          SELECT id, slug FROM sites WHERE id = ${site.id} OR slug = ${site.slug}
-        `;
+        const result = await retry(async () => {
+          // Check if site already exists by ID or slug
+          const existing = await sql`
+            SELECT id, slug FROM sites WHERE id = ${site.id} OR slug = ${site.slug}
+          `;
 
-        if (existing.length > 0) {
-          sitesSkipped++;
-          const reason = existing[0].id === site.id ? 'id exists' : 'slug exists';
-          console.log(`   ⏭️  Site ${site.slug} (${site.id}) skipped (${reason})`);
-          continue;
-        }
+          if (existing.length > 0) {
+            sitesSkipped++;
+            const reason = existing[0].id === site.id ? 'id exists' : 'slug exists';
+            console.log(`   ⏭️  Site ${site.slug} (${site.id}) skipped (${reason})`);
+            return { skipped: true };
+          }
 
-        // Insert site
-        await sql`
-          INSERT INTO sites (id, slug, name, domain, admin_key, public_key, created_at)
-          VALUES (${site.id}, ${site.slug}, ${site.name}, ${site.domain}, ${site.adminKey}, ${site.publicKey}, ${new Date(site.createdAt)})
-        `;
-        sitesSynced++;
-        console.log(`   ✅ Synced site: ${site.name} (${site.slug})`);
+          // Insert site
+          await sql`
+            INSERT INTO sites (id, slug, name, domain, admin_key, public_key, created_at)
+            VALUES (${site.id}, ${site.slug}, ${site.name}, ${site.domain}, ${site.adminKey}, ${site.publicKey}, ${new Date(site.createdAt)})
+          `;
+          return { synced: true };
+        }, `Site ${site.slug}`);
+
+        if (result?.synced) sitesSynced++;
       } catch (error) {
         console.error(`   ❌ Error syncing site ${site.slug}:`, error.message || error);
         sitesSkipped++;
@@ -106,35 +134,38 @@ async function main() {
     
     for (const testimonial of localData.testimonials) {
       try {
-        // Check if testimonial already exists
-        const existing = await sql`
-          SELECT id FROM testimonials WHERE id = ${testimonial.id}
-        `;
+        const result = await retry(async () => {
+          // Check if testimonial already exists
+          const existing = await sql`
+            SELECT id FROM testimonials WHERE id = ${testimonial.id}
+          `;
 
-        if (existing.length > 0) {
-          testimonialsSkipped++;
-          console.log(`   ⏭️  Testimonial ${testimonial.id} already exists, skipping`);
-          continue;
-        }
+          if (existing.length > 0) {
+            testimonialsSkipped++;
+            console.log(`   ⏭️  Testimonial ${testimonial.id} already exists, skipping`);
+            return { skipped: true };
+          }
 
-        // Check if the site exists
-        const siteExists = await sql`
-          SELECT id FROM sites WHERE id = ${testimonial.siteId}
-        `;
+          // Check if the site exists
+          const siteExists = await sql`
+            SELECT id FROM sites WHERE id = ${testimonial.siteId}
+          `;
 
-        if (siteExists.length === 0) {
-          testimonialsSkipped++;
-          console.log(`   ⚠️  Testimonial ${testimonial.id} references missing site, skipping`);
-          continue;
-        }
+          if (siteExists.length === 0) {
+            testimonialsSkipped++;
+            console.log(`   ⚠️  Testimonial ${testimonial.id} references missing site, skipping`);
+            return { skipped: true };
+          }
 
-        // Insert testimonial
-        await sql`
-          INSERT INTO testimonials (id, site_id, author, content, rating, status, created_at, updated_at)
-          VALUES (${testimonial.id}, ${testimonial.siteId}, ${testimonial.author}, ${testimonial.content}, ${testimonial.rating}, ${testimonial.status}, ${new Date(testimonial.createdAt)}, ${new Date(testimonial.updatedAt)})
-        `;
-        testimonialsSynced++;
-        console.log(`   ✅ Synced testimonial from ${testimonial.author}`);
+          // Insert testimonial
+          await sql`
+            INSERT INTO testimonials (id, site_id, author, content, rating, status, created_at, updated_at)
+            VALUES (${testimonial.id}, ${testimonial.siteId}, ${testimonial.author}, ${testimonial.content}, ${testimonial.rating}, ${testimonial.status}, ${new Date(testimonial.createdAt)}, ${new Date(testimonial.updatedAt)})
+          `;
+          return { synced: true };
+        }, `Testimonial ${testimonial.id}`);
+
+        if (result?.synced) testimonialsSynced++;
       } catch (error) {
         console.error(`   ❌ Error syncing testimonial ${testimonial.id}:`, error.message || error);
         testimonialsSkipped++;
