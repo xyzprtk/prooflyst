@@ -3,6 +3,51 @@ import { db } from "@/lib/db";
 import { sites, testimonials } from "@/lib/db/schema";
 import { eq, and, desc } from "drizzle-orm";
 import { notFound } from "next/navigation";
+import { getLocalSiteBySlug, getLocalTestimonialsBySiteId } from "@/lib/local-store";
+
+async function getSiteBySlug(slug: string) {
+  try {
+    const [site] = await db
+      .select()
+      .from(sites)
+      .where(eq(sites.slug, slug))
+      .limit(1);
+    if (site) return site;
+  } catch {
+    // Database unavailable, fallback to local store
+  }
+  return getLocalSiteBySlug(slug);
+}
+
+async function getApprovedTestimonials(siteId: string) {
+  try {
+    const results = await db
+      .select({
+        id: testimonials.id,
+        author: testimonials.author,
+        content: testimonials.content,
+        rating: testimonials.rating,
+        createdAt: testimonials.createdAt,
+      })
+      .from(testimonials)
+      .where(
+        and(
+          eq(testimonials.siteId, siteId),
+          eq(testimonials.status, "approved")
+        )
+      )
+      .orderBy(desc(testimonials.createdAt))
+      .limit(50);
+    return results.map((t) => ({
+      ...t,
+      createdAt: t.createdAt.toISOString(),
+    }));
+  } catch {
+    // Database unavailable, fallback to local store
+    const localTestimonials = await getLocalTestimonialsBySiteId(siteId, "approved");
+    return localTestimonials.slice(0, 50);
+  }
+}
 
 export async function generateMetadata({
   params,
@@ -10,11 +55,7 @@ export async function generateMetadata({
   params: Promise<{ slug: string }>;
 }): Promise<Metadata> {
   const { slug } = await params;
-  const [site] = await db
-    .select()
-    .from(sites)
-    .where(eq(sites.slug, slug))
-    .limit(1);
+  const site = await getSiteBySlug(slug);
 
   if (!site) return { title: "Not Found" };
 
@@ -35,32 +76,11 @@ export default async function TestimonialWallPage({
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = await params;
-
-  const [site] = await db
-    .select()
-    .from(sites)
-    .where(eq(sites.slug, slug))
-    .limit(1);
+  const site = await getSiteBySlug(slug);
 
   if (!site) notFound();
 
-  const approved = await db
-    .select({
-      id: testimonials.id,
-      author: testimonials.author,
-      content: testimonials.content,
-      rating: testimonials.rating,
-      createdAt: testimonials.createdAt,
-    })
-    .from(testimonials)
-    .where(
-      and(
-        eq(testimonials.siteId, site.id),
-        eq(testimonials.status, "approved")
-      )
-    )
-    .orderBy(desc(testimonials.createdAt))
-    .limit(50);
+  const approved = await getApprovedTestimonials(site.id);
 
   return (
     <div className="mx-auto min-h-screen w-full max-w-4xl px-6 py-12">

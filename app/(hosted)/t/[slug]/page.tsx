@@ -4,6 +4,21 @@ import { sites } from "@/lib/db/schema";
 import { eq } from "drizzle-orm";
 import { notFound } from "next/navigation";
 import { TestimonialForm } from "@/components/hosted/testimonial-form";
+import { getLocalSiteBySlug } from "@/lib/local-store";
+
+async function getSiteBySlug(slug: string) {
+  try {
+    const [site] = await db
+      .select()
+      .from(sites)
+      .where(eq(sites.slug, slug))
+      .limit(1);
+    if (site) return site;
+  } catch {
+    // Database unavailable, fallback to local store
+  }
+  return getLocalSiteBySlug(slug);
+}
 
 export async function generateMetadata({
   params,
@@ -11,11 +26,7 @@ export async function generateMetadata({
   params: Promise<{ slug: string }>;
 }): Promise<Metadata> {
   const { slug } = await params;
-  const [site] = await db
-    .select()
-    .from(sites)
-    .where(eq(sites.slug, slug))
-    .limit(1);
+  const site = await getSiteBySlug(slug);
 
   if (!site) return { title: "Not Found" };
 
@@ -33,12 +44,7 @@ export default async function HostedFormPage({
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = await params;
-
-  const [site] = await db
-    .select()
-    .from(sites)
-    .where(eq(sites.slug, slug))
-    .limit(1);
+  const site = await getSiteBySlug(slug);
 
   if (!site) notFound();
 

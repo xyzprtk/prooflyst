@@ -8,6 +8,12 @@ type LocalSite = {
   domain: string;
   adminKey: string;
   publicKey: string;
+  branding?: {
+    heading?: string;
+    thankYou?: string;
+    accentColor?: string;
+    wallLayout?: "grid" | "list";
+  } | null;
   createdAt: string;
 };
 
