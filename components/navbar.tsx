@@ -1,5 +1,6 @@
 "use client";
 
+import dynamic from "next/dynamic";
 import { useState, useEffect } from "react";
 import { buttonVariants } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -35,18 +36,18 @@ function useScrollState() {
   return scrolled;
 }
 
-function Logo() {
+function LogoInner() {
   return (
-    <div className="relative h-8 w-8" suppressHydrationWarning>
+    <div className="relative h-8 w-8">
       <Image
-        src="/logos/logo-dark.png"
+        src="/logos/logo-light.png"
         alt="Prooflyst"
         width={32}
         height={32}
         className="absolute inset-0 block dark:hidden"
       />
       <Image
-        src="/logos/logo-light.png"
+        src="/logos/logo-dark.png"
         alt="Prooflyst"
         width={32}
         height={32}
@@ -56,18 +57,18 @@ function Logo() {
   );
 }
 
-function LogoInverse() {
+function LogoInverseInner() {
   return (
-    <div className="relative h-8 w-8" suppressHydrationWarning>
+    <div className="relative h-8 w-8">
       <Image
-        src="/logos/logo-dark.png"
+        src="/logos/logo-light.png"
         alt="Prooflyst"
         width={32}
         height={32}
         className="absolute inset-0 block dark:hidden"
       />
       <Image
-        src="/logos/logo-light.png"
+        src="/logos/logo-dark.png"
         alt="Prooflyst"
         width={32}
         height={32}
@@ -75,6 +76,13 @@ function LogoInverse() {
       />
     </div>
   );
+}
+
+const Logo = dynamic(() => Promise.resolve(LogoInner), { ssr: false });
+const LogoInverse = dynamic(() => Promise.resolve(LogoInverseInner), { ssr: false });
+
+function LogoPlaceholder() {
+  return <div className="h-8 w-8" />;
 }
 
 export function Navbar() {
