@@ -134,8 +134,8 @@ export function NavbarInverse() {
             Pricing
           </Link>
         </div>
-        <div className="flex items-center gap-3">
-          <ThemeToggle />
+        <div className="flex items-center justify-end gap-3">
+          <ThemeToggle inverse />
           <Link
             href="https://github.com/xyzprtk/prooflyst"
             target="_blank"
