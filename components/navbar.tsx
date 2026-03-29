@@ -36,37 +36,17 @@ function useScrollState() {
 }
 
 function Logo() {
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
-
-  if (!mounted) {
-    return (
-      <div className="relative h-8 w-8">
-        <Image
-          src="/logos/logo-light.png"
-          alt="Prooflyst"
-          width={32}
-          height={32}
-          className="absolute inset-0"
-        />
-      </div>
-    );
-  }
-
   return (
-    <div className="relative h-8 w-8">
+    <div className="relative h-8 w-8" suppressHydrationWarning>
       <Image
-        src="/logos/logo-light.png"
+        src="/logos/logo-dark.png"
         alt="Prooflyst"
         width={32}
         height={32}
         className="absolute inset-0 block dark:hidden"
       />
       <Image
-        src="/logos/logo-dark.png"
+        src="/logos/logo-light.png"
         alt="Prooflyst"
         width={32}
         height={32}
@@ -77,37 +57,17 @@ function Logo() {
 }
 
 function LogoInverse() {
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
-
-  if (!mounted) {
-    return (
-      <div className="relative h-8 w-8">
-        <Image
-          src="/logos/logo-light.png"
-          alt="Prooflyst"
-          width={32}
-          height={32}
-          className="absolute inset-0"
-        />
-      </div>
-    );
-  }
-
   return (
-    <div className="relative h-8 w-8">
+    <div className="relative h-8 w-8" suppressHydrationWarning>
       <Image
-        src="/logos/logo-light.png"
+        src="/logos/logo-dark.png"
         alt="Prooflyst"
         width={32}
         height={32}
         className="absolute inset-0 block dark:hidden"
       />
       <Image
-        src="/logos/logo-dark.png"
+        src="/logos/logo-light.png"
         alt="Prooflyst"
         width={32}
         height={32}
