@@ -1,7 +1,7 @@
 import { redirect } from "next/navigation";
 import Link from "next/link";
+import Image from "next/image";
 import { eq } from "drizzle-orm";
-import { Zap } from "lucide-react";
 import { LogoutButton } from "@/components/dashboard/logout-button";
 import { db } from "@/lib/db";
 import { sites } from "@/lib/db/schema";
@@ -20,6 +20,27 @@ async function getSiteByAdminKey(adminKey: string): Promise<{ id: string; name: 
       .limit(1);
     return site || null;
   });
+}
+
+function Logo() {
+  return (
+    <div className="relative h-7 w-7">
+      <Image
+        src="/logos/logo-dark.png"
+        alt="Prooflyst"
+        width={28}
+        height={28}
+        className="block dark:hidden"
+      />
+      <Image
+        src="/logos/logo-light.png"
+        alt="Prooflyst"
+        width={28}
+        height={28}
+        className="hidden dark:block"
+      />
+    </div>
+  );
 }
 
 export default async function ProtectedDashboardLayout({
@@ -43,9 +64,7 @@ export default async function ProtectedDashboardLayout({
         <div className="mx-auto flex h-14 w-full max-w-7xl items-center justify-between px-6">
           <div className="flex items-center gap-4">
             <Link href="/dashboard" className="flex items-center gap-2">
-              <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-primary/10">
-                <Zap className="h-3.5 w-3.5 text-primary" />
-              </div>
+              <Logo />
               <span className="text-sm font-semibold tracking-tight">Prooflyst</span>
             </Link>
             <span className="text-sm text-muted-foreground">/</span>

@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { buttonVariants } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { ThemeToggle } from "@/components/theme-toggle";
-import { Zap } from "lucide-react";
+import Image from "next/image";
 import Link from "next/link";
 
 function GitHubIcon({ className }: { className?: string }) {
@@ -35,6 +35,48 @@ function useScrollState() {
   return scrolled;
 }
 
+function Logo() {
+  return (
+    <div className="relative h-8 w-8">
+      <Image
+        src="/logos/logo-dark.png"
+        alt="Prooflyst"
+        width={32}
+        height={32}
+        className="block dark:hidden"
+      />
+      <Image
+        src="/logos/logo-light.png"
+        alt="Prooflyst"
+        width={32}
+        height={32}
+        className="hidden dark:block"
+      />
+    </div>
+  );
+}
+
+function LogoInverse() {
+  return (
+    <div className="relative h-8 w-8">
+      <Image
+        src="/logos/logo-light.png"
+        alt="Prooflyst"
+        width={32}
+        height={32}
+        className="block dark:hidden"
+      />
+      <Image
+        src="/logos/logo-dark.png"
+        alt="Prooflyst"
+        width={32}
+        height={32}
+        className="hidden dark:block"
+      />
+    </div>
+  );
+}
+
 export function Navbar() {
   const scrolled = useScrollState();
 
@@ -48,12 +90,10 @@ export function Navbar() {
       )}
     >
       <div className="flex h-14 items-center justify-between px-6 min-w-[800px] max-w-5xl">
-        <div className="flex items-center gap-2">
-          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10">
-            <Zap className="h-4 w-4 text-primary" />
-          </div>
+        <Link href="/" className="flex items-center gap-2">
+          <Logo />
           <span className="text-lg font-semibold tracking-tight text-foreground">Prooflyst</span>
-        </div>
+        </Link>
         <div className="hidden items-center gap-8 md:flex">
           <Link
             href="#features"
@@ -108,12 +148,10 @@ export function NavbarInverse() {
       )}
     >
       <div className="flex h-14 items-center justify-between px-6 min-w-[800px] max-w-5xl">
-        <div className="flex items-center gap-2">
-          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-white/10 dark:bg-slate-900/10">
-            <Zap className="h-4 w-4 text-white dark:text-slate-900" />
-          </div>
+        <Link href="/" className="flex items-center gap-2">
+          <LogoInverse />
           <span className="text-lg font-semibold tracking-tight text-white dark:text-slate-900">Prooflyst</span>
-        </div>
+        </Link>
         <div className="hidden items-center gap-8 md:flex">
           <Link
             href="#features"
