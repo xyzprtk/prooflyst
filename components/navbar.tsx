@@ -36,6 +36,26 @@ function useScrollState() {
 }
 
 function Logo() {
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  if (!mounted) {
+    return (
+      <div className="relative h-8 w-8">
+        <Image
+          src="/logos/logo-dark.png"
+          alt="Prooflyst"
+          width={32}
+          height={32}
+          className="absolute inset-0"
+        />
+      </div>
+    );
+  }
+
   return (
     <div className="relative h-8 w-8">
       <Image
@@ -57,6 +77,26 @@ function Logo() {
 }
 
 function LogoInverse() {
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  if (!mounted) {
+    return (
+      <div className="relative h-8 w-8">
+        <Image
+          src="/logos/logo-dark.png"
+          alt="Prooflyst"
+          width={32}
+          height={32}
+          className="absolute inset-0"
+        />
+      </div>
+    );
+  }
+
   return (
     <div className="relative h-8 w-8">
       <Image
