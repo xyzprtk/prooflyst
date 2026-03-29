@@ -43,14 +43,14 @@ function Logo() {
         alt="Prooflyst"
         width={32}
         height={32}
-        className="block dark:hidden"
+        className="absolute inset-0 block dark:hidden"
       />
       <Image
         src="/logos/logo-light.png"
         alt="Prooflyst"
         width={32}
         height={32}
-        className="hidden dark:block"
+        className="absolute inset-0 hidden dark:block"
       />
     </div>
   );
@@ -64,14 +64,14 @@ function LogoInverse() {
         alt="Prooflyst"
         width={32}
         height={32}
-        className="block dark:hidden"
+        className="absolute inset-0 block dark:hidden"
       />
       <Image
         src="/logos/logo-dark.png"
         alt="Prooflyst"
         width={32}
         height={32}
-        className="hidden dark:block"
+        className="absolute inset-0 hidden dark:block"
       />
     </div>
   );

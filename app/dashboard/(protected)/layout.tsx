@@ -30,14 +30,14 @@ function Logo() {
         alt="Prooflyst"
         width={28}
         height={28}
-        className="block dark:hidden"
+        className="absolute inset-0 block dark:hidden"
       />
       <Image
         src="/logos/logo-light.png"
         alt="Prooflyst"
         width={28}
         height={28}
-        className="hidden dark:block"
+        className="absolute inset-0 hidden dark:block"
       />
     </div>
   );
