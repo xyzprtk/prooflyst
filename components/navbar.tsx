@@ -7,7 +7,6 @@ import { ThemeToggle } from "@/components/theme-toggle";
 import { Zap } from "lucide-react";
 import Link from "next/link";
 
-// GitHub Icon Component
 function GitHubIcon({ className }: { className?: string }) {
   return (
     <svg
@@ -21,7 +20,7 @@ function GitHubIcon({ className }: { className?: string }) {
   );
 }
 
-export function Navbar() {
+function useScrollState() {
   const [scrolled, setScrolled] = useState(false);
 
   useEffect(() => {
@@ -33,20 +32,27 @@ export function Navbar() {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
+  return scrolled;
+}
+
+export function Navbar() {
+  const scrolled = useScrollState();
+
   return (
     <nav
-      className={`fixed top-4 left-1/2 -translate-x-1/2 z-50 transition-all duration-300 ${
+      className={cn(
+        "fixed top-4 left-1/2 -translate-x-1/2 z-50 transition-all duration-300 rounded-2xl",
         scrolled
           ? "bg-background/80 backdrop-blur-xl shadow-lg border border-border/50"
           : "bg-background/60 backdrop-blur-sm"
-      } rounded-2xl`}
+      )}
     >
       <div className="flex h-14 items-center justify-between px-6 min-w-[800px] max-w-5xl">
         <div className="flex items-center gap-2">
           <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10">
             <Zap className="h-4 w-4 text-primary" />
           </div>
-          <span className="text-lg font-semibold tracking-tight">Prooflyst</span>
+          <span className="text-lg font-semibold tracking-tight text-foreground">Prooflyst</span>
         </div>
         <div className="hidden items-center gap-8 md:flex">
           <Link
@@ -75,6 +81,66 @@ export function Navbar() {
             target="_blank"
             rel="noopener noreferrer"
             className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
+          >
+            <GitHubIcon className="h-4 w-4" />
+            <span className="hidden sm:inline">GitHub</span>
+          </Link>
+          <Link
+            href="/dashboard/setup"
+            className={cn(buttonVariants({ size: "sm" }), "h-9 px-5")}
+          >
+            Get Started
+          </Link>
+        </div>
+      </div>
+    </nav>
+  );
+}
+
+export function NavbarInverse() {
+  const scrolled = useScrollState();
+
+  return (
+    <nav
+      className={cn(
+        "fixed top-4 left-1/2 -translate-x-1/2 z-50 transition-all duration-300 rounded-2xl bg-slate-900 dark:bg-white",
+        scrolled && "backdrop-blur-xl shadow-lg border border-slate-700/50 dark:border-slate-200/50"
+      )}
+    >
+      <div className="flex h-14 items-center justify-between px-6 min-w-[800px] max-w-5xl">
+        <div className="flex items-center gap-2">
+          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-white/10 dark:bg-slate-900/10">
+            <Zap className="h-4 w-4 text-white dark:text-slate-900" />
+          </div>
+          <span className="text-lg font-semibold tracking-tight text-white dark:text-slate-900">Prooflyst</span>
+        </div>
+        <div className="hidden items-center gap-8 md:flex">
+          <Link
+            href="#features"
+            className="text-sm text-slate-300 dark:text-slate-600 hover:text-white dark:hover:text-slate-900 transition-colors"
+          >
+            Features
+          </Link>
+          <Link
+            href="#api"
+            className="text-sm text-slate-300 dark:text-slate-600 hover:text-white dark:hover:text-slate-900 transition-colors"
+          >
+            API
+          </Link>
+          <Link
+            href="#pricing"
+            className="text-sm text-slate-300 dark:text-slate-600 hover:text-white dark:hover:text-slate-900 transition-colors"
+          >
+            Pricing
+          </Link>
+        </div>
+        <div className="flex items-center gap-3">
+          <ThemeToggle />
+          <Link
+            href="https://github.com/xyzprtk/prooflyst"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center gap-2 text-sm text-slate-300 dark:text-slate-600 hover:text-white dark:hover:text-slate-900 transition-colors"
           >
             <GitHubIcon className="h-4 w-4" />
             <span className="hidden sm:inline">GitHub</span>

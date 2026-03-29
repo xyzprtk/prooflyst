@@ -1,4 +1,4 @@
-import { Navbar } from "@/components/navbar";
+import { NavbarInverse } from "@/components/navbar";
 import { HeroSection } from "@/components/hero";
 import { SocialProofSection } from "@/components/social-proof";
 import { HowItWorksSection } from "@/components/how-it-works";
@@ -13,7 +13,7 @@ import { Footer } from "@/components/footer";
 export default function LandingPage() {
   return (
     <main className="min-h-screen">
-      <Navbar />
+      <NavbarInverse />
       <HeroSection />
       <SocialProofSection />
       <HowItWorksSection />
