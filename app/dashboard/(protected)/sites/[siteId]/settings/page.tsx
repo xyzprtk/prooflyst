@@ -1,11 +1,11 @@
 import Link from "next/link";
 import { and, eq } from "drizzle-orm";
 import { notFound, redirect } from "next/navigation";
-import { db, isDbAvailable } from "@/lib/db";
+import { db } from "@/lib/db";
 import { sites } from "@/lib/db/schema";
 import { getAdminKey } from "@/lib/session";
 import { hashKey } from "@/lib/keys";
-import { getLocalSiteById } from "@/lib/local-store";
+import { withRetry } from "@/lib/retry";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 export default async function SiteSettingsPage({
@@ -21,41 +21,15 @@ export default async function SiteSettingsPage({
   }
 
   const adminHash = hashKey(adminKey);
-  const canUseDb = await isDbAvailable();
-  
-  let site = undefined;
-  
-  if (canUseDb) {
-    const [dbResult] = await Promise.allSettled([
-      db
-        .select()
-        .from(sites)
-        .where(and(eq(sites.id, siteId), eq(sites.adminKey, adminHash)))
-        .limit(1)
-    ]);
 
-    if (dbResult.status === "fulfilled" && dbResult.value.length > 0) {
-      site = dbResult.value[0];
-    }
-  }
-
-  // Fall back to local store
-  if (!site) {
-    const local = await getLocalSiteById(siteId);
-    if (local && local.adminKey === adminHash) {
-      site = {
-        id: local.id,
-        slug: local.slug,
-        name: local.name,
-        domain: local.domain,
-        adminKey: local.adminKey,
-        publicKey: local.publicKey,
-        webhookUrl: null,
-        branding: null,
-        createdAt: new Date(local.createdAt),
-      };
-    }
-  }
+  const site = await withRetry(async () => {
+    const [result] = await db
+      .select()
+      .from(sites)
+      .where(and(eq(sites.id, siteId), eq(sites.adminKey, adminHash)))
+      .limit(1);
+    return result;
+  });
 
   if (!site) {
     notFound();

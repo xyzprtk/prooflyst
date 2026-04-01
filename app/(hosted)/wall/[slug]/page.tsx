@@ -3,25 +3,22 @@ import { db } from "@/lib/db";
 import { sites, testimonials } from "@/lib/db/schema";
 import { eq, and, desc } from "drizzle-orm";
 import { notFound } from "next/navigation";
-import { getLocalSiteBySlug, getLocalTestimonialsBySiteId } from "@/lib/local-store";
+import { withRetry } from "@/lib/retry";
 
 async function getSiteBySlug(slug: string) {
-  try {
+  return withRetry(async () => {
     const [site] = await db
       .select()
       .from(sites)
       .where(eq(sites.slug, slug))
       .limit(1);
-    if (site) return site;
-  } catch {
-    // Database unavailable, fallback to local store
-  }
-  return getLocalSiteBySlug(slug);
+    return site;
+  });
 }
 
 async function getApprovedTestimonials(siteId: string) {
-  try {
-    const results = await db
+  return withRetry(async () => {
+    return db
       .select({
         id: testimonials.id,
         author: testimonials.author,
@@ -38,15 +35,7 @@ async function getApprovedTestimonials(siteId: string) {
       )
       .orderBy(desc(testimonials.createdAt))
       .limit(50);
-    return results.map((t) => ({
-      ...t,
-      createdAt: t.createdAt.toISOString(),
-    }));
-  } catch {
-    // Database unavailable, fallback to local store
-    const localTestimonials = await getLocalTestimonialsBySiteId(siteId, "approved");
-    return localTestimonials.slice(0, 50);
-  }
+  });
 }
 
 export async function generateMetadata({

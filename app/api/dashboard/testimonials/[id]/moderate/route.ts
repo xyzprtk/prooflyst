@@ -1,11 +1,12 @@
 import { NextResponse } from "next/server";
-import { eq, and } from "drizzle-orm";
-import { db, isDbAvailable } from "@/lib/db";
+import { eq } from "drizzle-orm";
+import { db } from "@/lib/db";
 import { sites, testimonials } from "@/lib/db/schema";
 import { hashKey } from "@/lib/keys";
 import { getAdminKey } from "@/lib/session";
-import { getLocalSiteByAdminHash, updateLocalTestimonialStatus } from "@/lib/local-store";
 import { apiError } from "@/lib/errors";
+import { withRetry } from "@/lib/retry";
+import { getCachedSite, setCachedSite, type CachedSite } from "@/lib/site-cache";
 
 export async function POST(
   request: Request,
@@ -26,28 +27,28 @@ export async function POST(
   }
 
   const adminHash = hashKey(adminKey);
-  const canUseDb = await isDbAvailable();
-  let siteId: string | undefined;
 
-  if (canUseDb) {
-    const [siteResult] = await Promise.allSettled([
-      db.select({ id: sites.id, slug: sites.slug }).from(sites).where(eq(sites.adminKey, adminHash)).limit(1)
-    ]);
+  // Try cache first
+  let site: CachedSite | null = await getCachedSite(adminHash);
 
-    if (siteResult.status === "fulfilled" && siteResult.value.length > 0) {
-      siteId = siteResult.value[0].id;
+  // If not in cache, query database
+  if (!site) {
+    const [dbSite] = await withRetry(async () => {
+      return db
+        .select({ id: sites.id, name: sites.name, slug: sites.slug, adminKey: sites.adminKey })
+        .from(sites)
+        .where(eq(sites.adminKey, adminHash))
+        .limit(1);
+    });
+
+    if (!dbSite) {
+      return apiError("UNAUTHORIZED", "Site not found");
     }
-  }
 
-  if (!siteId) {
-    const local = await getLocalSiteByAdminHash(adminHash);
-    if (local) {
-      siteId = local.id;
-    }
-  }
-
-  if (!siteId) {
-    return apiError("UNAUTHORIZED", "Site not found");
+    site = dbSite;
+    
+    // Cache for future requests
+    await setCachedSite(adminHash, site);
   }
 
   let newStatus: "approved" | "deleted" | "pending";
@@ -56,22 +57,25 @@ export async function POST(
   } else if (action === "delete") {
     newStatus = "deleted";
   } else {
-    newStatus = "pending"; // restore
+    newStatus = "pending";
   }
 
-  if (canUseDb) {
-    const [updateResult] = await Promise.allSettled([
-      db
-        .update(testimonials)
-        .set({ status: newStatus, updatedAt: new Date() })
-        .where(and(eq(testimonials.id, id), eq(testimonials.siteId, siteId)))
-    ]);
+  const result = await withRetry(async () => {
+    return db
+      .update(testimonials)
+      .set({ status: newStatus, updatedAt: new Date() })
+      .where(eq(testimonials.id, id))
+      .returning();
+  });
 
-    if (updateResult.status === "fulfilled") {
-      return NextResponse.json({ success: true, testimonial: { id, status: newStatus } });
-    }
+  if (!result || result.length === 0) {
+    return apiError("NOT_FOUND", "Testimonial not found");
   }
 
-  await updateLocalTestimonialStatus(siteId, id, newStatus);
+  // Security check: ensure testimonial belongs to the site
+  if (result[0].siteId !== site.id) {
+    return apiError("FORBIDDEN", "Testimonial does not belong to your site");
+  }
+
   return NextResponse.json({ success: true, testimonial: { id, status: newStatus } });
 }

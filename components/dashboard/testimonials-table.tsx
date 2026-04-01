@@ -4,6 +4,7 @@ import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Loader2 } from "lucide-react";
 
 interface Testimonial {
   id: string;
@@ -50,18 +51,23 @@ export function TestimonialsTable({ testimonials }: TestimonialsTableProps) {
           });
           router.refresh();
         } else {
+          const data = await res.json().catch(() => ({}));
+          console.error("Moderation failed:", data.error || data.message || "Unknown error");
           setOptimisticUpdates((prev) => {
             const updates = { ...prev };
             delete updates[id];
             return updates;
           });
+          alert(data.error || data.message || "Failed to update testimonial");
         }
-      } catch {
+      } catch (error) {
+        console.error("Moderation error:", error);
         setOptimisticUpdates((prev) => {
           const updates = { ...prev };
           delete updates[id];
           return updates;
         });
+        alert("Network error. Please try again.");
       }
     });
   };
@@ -168,7 +174,8 @@ export function TestimonialsTable({ testimonials }: TestimonialsTableProps) {
                                 onClick={() => handleModerate(row.id, "approve")}
                                 disabled={isLoading || isPending}
                               >
-                                {isLoading ? "..." : "Approve"}
+                                {isLoading && <Loader2 className="mr-1 h-3 w-3 animate-spin" />}
+                                Approve
                               </Button>
                               <Button
                                 size="sm"
@@ -176,7 +183,8 @@ export function TestimonialsTable({ testimonials }: TestimonialsTableProps) {
                                 onClick={() => handleModerate(row.id, "delete")}
                                 disabled={isLoading || isPending}
                               >
-                                {isLoading ? "..." : "Delete"}
+                                {isLoading && <Loader2 className="mr-1 h-3 w-3 animate-spin" />}
+                                Delete
                               </Button>
                             </>
                           )}
@@ -187,7 +195,8 @@ export function TestimonialsTable({ testimonials }: TestimonialsTableProps) {
                               onClick={() => handleModerate(row.id, "delete")}
                               disabled={isLoading || isPending}
                             >
-                              {isLoading ? "..." : "Delete"}
+                              {isLoading && <Loader2 className="mr-1 h-3 w-3 animate-spin" />}
+                              Delete
                             </Button>
                           )}
                           {row.status === "deleted" && (
@@ -197,7 +206,8 @@ export function TestimonialsTable({ testimonials }: TestimonialsTableProps) {
                               onClick={() => handleModerate(row.id, "restore")}
                               disabled={isLoading || isPending}
                             >
-                              {isLoading ? "..." : "Restore"}
+                              {isLoading && <Loader2 className="mr-1 h-3 w-3 animate-spin" />}
+                              Restore
                             </Button>
                           )}
                         </div>
