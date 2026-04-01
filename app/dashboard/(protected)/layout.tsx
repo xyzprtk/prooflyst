@@ -3,6 +3,7 @@ import Link from "next/link";
 import { eq } from "drizzle-orm";
 import { Logo } from "@/components/logo";
 import { LogoutButton } from "@/components/dashboard/logout-button";
+import { ThemeToggle } from "@/components/theme-toggle";
 import { db } from "@/lib/db";
 import { sites } from "@/lib/db/schema";
 import { hashKey } from "@/lib/keys";
@@ -39,25 +40,28 @@ export default async function ProtectedDashboardLayout({
 
   return (
     <div className="flex min-h-screen flex-col">
-      <header className="sticky top-0 z-40 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-        <div className="mx-auto flex h-14 w-full max-w-7xl items-center justify-between px-6">
+      <header className="sticky top-4 z-40 mx-auto max-w-7xl px-6">
+        <nav className="flex h-14 items-center justify-between rounded-2xl bg-background/80 backdrop-blur-xl border border-border/50 px-6 shadow-sm">
           <div className="flex items-center gap-4">
             <Link href="/dashboard" className="flex items-center gap-2">
-              <Logo size={28} />
+              <Logo size={24} />
               <span className="text-sm font-semibold tracking-tight">Prooflyst</span>
             </Link>
-            <span className="text-sm text-muted-foreground">/</span>
+            <span className="text-muted-foreground">/</span>
             <Link
               href={`/dashboard/sites/${site.id}/settings`}
-              className="text-sm text-muted-foreground hover:text-foreground"
+              className="text-sm text-muted-foreground hover:text-foreground transition-colors"
             >
               {site.name}
             </Link>
           </div>
-          <LogoutButton />
-        </div>
+          <div className="flex items-center gap-2">
+            <ThemeToggle />
+            <LogoutButton />
+          </div>
+        </nav>
       </header>
-      <main className="mx-auto w-full max-w-7xl flex-1 px-6 py-8">{children}</main>
+      <main className="mx-auto w-full max-w-7xl flex-1 px-6 py-8 pt-10">{children}</main>
     </div>
   );
 }
