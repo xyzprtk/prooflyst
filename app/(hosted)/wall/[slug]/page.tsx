@@ -4,10 +4,7 @@ import { sites, testimonials } from "@/lib/db/schema";
 import { eq, and, desc } from "drizzle-orm";
 import { notFound } from "next/navigation";
 import { withRetry } from "@/lib/retry";
-import { WallHeader } from "@/components/hosted/wall-header";
-import { WallFooter } from "@/components/hosted/wall-footer";
-import { MasonryGrid } from "@/components/hosted/masonry-grid";
-import { TestimonialCard } from "@/components/hosted/testimonial-card";
+import { TestimonialWall } from "@/components/hosted/testimonial-wall";
 
 async function getSiteBySlug(slug: string) {
   return withRetry(async () => {
@@ -38,7 +35,7 @@ async function getApprovedTestimonials(siteId: string) {
         )
       )
       .orderBy(desc(testimonials.createdAt))
-      .limit(12);
+      .limit(13);
   });
 }
 
@@ -76,64 +73,31 @@ export default async function TestimonialWallPage({
 
   if (!site) notFound();
 
-  const approved = await getApprovedTestimonials(site.id);
+  const rows = await getApprovedTestimonials(site.id);
+  const hasMore = rows.length > 12;
+  const approved = hasMore ? rows.slice(0, 12) : rows;
 
-  const columns = site.branding?.wallColumns ?? 3;
-  const cardStyle = site.branding?.wallCardStyle ?? "default";
-  const accentColor = site.branding?.accentColor ?? "#6366f1";
-  const showRating = site.branding?.wallShowRating ?? true;
-  const showDate = site.branding?.wallShowDate ?? false;
-  const showAvatar = site.branding?.wallShowAvatar ?? true;
+  const nextCursor = hasMore
+    ? Buffer.from(approved[approved.length - 1].createdAt.toISOString()).toString("base64url")
+    : null;
+
+  const initialTestimonials = approved.map((t) => ({
+    id: t.id,
+    author: t.author,
+    content: t.content,
+    rating: t.rating,
+    created_at: t.createdAt.toISOString(),
+  }));
 
   return (
-    <div
-      className="mx-auto min-h-screen w-full max-w-6xl px-6 py-12"
-      style={{ "--accent-color": accentColor } as React.CSSProperties}
-    >
-      <div className="flex flex-col gap-8">
-        <WallHeader
-          siteName={site.name}
-          heading={site.branding?.heading}
-          count={approved.length}
-          slug={slug}
-          accentColor={accentColor}
-        />
-
-        {approved.length === 0 ? (
-          <div className="flex flex-col items-center gap-4 py-16 text-center">
-            <p className="text-lg text-muted-foreground">
-              No testimonials yet.
-            </p>
-            <a
-              href={`/t/${slug}`}
-              className="text-sm underline underline-offset-4 transition-colors hover:text-foreground"
-              style={{ color: accentColor }}
-            >
-              Be the first to share your experience
-            </a>
-          </div>
-        ) : (
-          <MasonryGrid columns={columns}>
-            {approved.map((t) => (
-              <TestimonialCard
-                key={t.id}
-                id={t.id}
-                author={t.author}
-                content={t.content}
-                rating={t.rating}
-                createdAt={t.createdAt}
-                cardStyle={cardStyle}
-                showRating={showRating}
-                showDate={showDate}
-                showAvatar={showAvatar}
-                accentColor={accentColor}
-              />
-            ))}
-          </MasonryGrid>
-        )}
-
-        <WallFooter accentColor={accentColor} />
-      </div>
-    </div>
+    <TestimonialWall
+      siteName={site.name}
+      siteId={site.id}
+      slug={slug}
+      branding={site.branding}
+      initialTestimonials={initialTestimonials}
+      nextCursor={nextCursor}
+      initialCount={approved.length}
+    />
   );
 }
