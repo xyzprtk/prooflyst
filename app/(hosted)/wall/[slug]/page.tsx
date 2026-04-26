@@ -4,6 +4,10 @@ import { sites, testimonials } from "@/lib/db/schema";
 import { eq, and, desc } from "drizzle-orm";
 import { notFound } from "next/navigation";
 import { withRetry } from "@/lib/retry";
+import { WallHeader } from "@/components/hosted/wall-header";
+import { WallFooter } from "@/components/hosted/wall-footer";
+import { MasonryGrid } from "@/components/hosted/masonry-grid";
+import { TestimonialCard } from "@/components/hosted/testimonial-card";
 
 async function getSiteBySlug(slug: string) {
   return withRetry(async () => {
@@ -34,7 +38,7 @@ async function getApprovedTestimonials(siteId: string) {
         )
       )
       .orderBy(desc(testimonials.createdAt))
-      .limit(50);
+      .limit(12);
   });
 }
 
@@ -48,11 +52,14 @@ export async function generateMetadata({
 
   if (!site) return { title: "Not Found" };
 
+  const heading =
+    site.branding?.heading ?? `What people say about ${site.name}`;
+
   return {
-    title: `What people say about ${site.name}`,
+    title: heading,
     description: `Read testimonials from ${site.name} customers`,
     openGraph: {
-      title: `What people say about ${site.name}`,
+      title: heading,
       description: `Read testimonials from ${site.name} customers`,
       type: "website",
     },
@@ -71,50 +78,61 @@ export default async function TestimonialWallPage({
 
   const approved = await getApprovedTestimonials(site.id);
 
+  const columns = site.branding?.wallColumns ?? 3;
+  const cardStyle = site.branding?.wallCardStyle ?? "default";
+  const accentColor = site.branding?.accentColor ?? "#6366f1";
+  const showRating = site.branding?.wallShowRating ?? true;
+  const showDate = site.branding?.wallShowDate ?? false;
+  const showAvatar = site.branding?.wallShowAvatar ?? true;
+
   return (
-    <div className="mx-auto min-h-screen w-full max-w-4xl px-6 py-12">
+    <div
+      className="mx-auto min-h-screen w-full max-w-6xl px-6 py-12"
+      style={{ "--accent-color": accentColor } as React.CSSProperties}
+    >
       <div className="flex flex-col gap-8">
-        <div className="flex flex-col gap-2 text-center">
-          <h1 className="text-3xl font-semibold tracking-tight">
-            What people say about {site.name}
-          </h1>
-          <p className="text-muted-foreground">
-            {approved.length} testimonial{approved.length !== 1 ? "s" : ""}
-          </p>
-        </div>
+        <WallHeader
+          siteName={site.name}
+          heading={site.branding?.heading}
+          count={approved.length}
+          slug={slug}
+          accentColor={accentColor}
+        />
 
         {approved.length === 0 ? (
-          <p className="py-12 text-center text-muted-foreground">
-            No testimonials yet.
-          </p>
-        ) : (
-          <div className="grid gap-4 sm:grid-cols-2">
-            {approved.map((t) => (
-              <div key={t.id} className="rounded-lg border bg-card p-6">
-                <p className="text-card-foreground">&ldquo;{t.content}&rdquo;</p>
-                <div className="mt-4 flex items-center gap-2">
-                  <span className="text-sm font-medium">{t.author}</span>
-                  {t.rating && (
-                    <span className="text-xs text-muted-foreground">
-                      {"★".repeat(t.rating)}
-                      {"☆".repeat(5 - t.rating)}
-                    </span>
-                  )}
-                </div>
-              </div>
-            ))}
+          <div className="flex flex-col items-center gap-4 py-16 text-center">
+            <p className="text-lg text-muted-foreground">
+              No testimonials yet.
+            </p>
+            <a
+              href={`/t/${slug}`}
+              className="text-sm underline underline-offset-4 transition-colors hover:text-foreground"
+              style={{ color: accentColor }}
+            >
+              Be the first to share your experience
+            </a>
           </div>
+        ) : (
+          <MasonryGrid columns={columns}>
+            {approved.map((t) => (
+              <TestimonialCard
+                key={t.id}
+                id={t.id}
+                author={t.author}
+                content={t.content}
+                rating={t.rating}
+                createdAt={t.createdAt}
+                cardStyle={cardStyle}
+                showRating={showRating}
+                showDate={showDate}
+                showAvatar={showAvatar}
+                accentColor={accentColor}
+              />
+            ))}
+          </MasonryGrid>
         )}
 
-        <footer className="text-center text-xs text-muted-foreground">
-          Powered by{" "}
-          <a
-            href={process.env.NEXT_PUBLIC_APP_URL}
-            className="underline underline-offset-4 hover:text-foreground"
-          >
-            Prooflyst
-          </a>
-        </footer>
+        <WallFooter accentColor={accentColor} />
       </div>
     </div>
   );
