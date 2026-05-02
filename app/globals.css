@@ -195,30 +195,6 @@
 
 .masonry-item {
   break-inside: avoid;
-  margin-bottom: 1rem;
-}
-
-/* Card styles */
-.card-default {
-  border-radius: 0.75rem;
-  border: 1px solid var(--border);
-  background: var(--card);
-  padding: 1.5rem;
-}
-
-.card-minimal {
-  border-radius: 0;
-  border: none;
-  background: transparent;
-  padding: 1.5rem 0;
-}
-
-.card-bordered {
-  border-radius: 0.75rem;
-  border: 1px solid var(--border);
-  border-left: 3px solid var(--accent-color, #6366f1);
-  background: var(--card);
-  padding: 1.5rem;
 }
 
 /* Accent color utility */
@@ -228,14 +204,6 @@
 
 .accent-bg {
   background-color: var(--accent-color, #6366f1);
-}
-
-.accent-bg-muted {
-  background-color: color-mix(in oklch, var(--accent-color, #6366f1) 10%, transparent);
-}
-
-.accent-border {
-  border-color: var(--accent-color, #6366f1);
 }
 
 /* Skeleton loading */
