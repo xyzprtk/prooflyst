@@ -1,5 +1,5 @@
 import { cn } from "@/lib/utils";
-import { Star } from "lucide-react";
+import { Star, Quote } from "lucide-react";
 
 export interface TestimonialCardProps {
   id: string;
@@ -45,8 +45,8 @@ function Avatar({
 
   return (
     <div
-      className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-xs font-medium accent-bg-muted"
-      style={{ color: accentColor }}
+      className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-xs font-semibold"
+      style={{ backgroundColor: `${accentColor}15`, color: accentColor }}
     >
       {initials}
     </div>
@@ -90,20 +90,28 @@ export function TestimonialCard({
   accentColor = "#6366f1",
 }: TestimonialCardProps) {
   const displayRating = showRating && rating ? rating : null;
-  const displayDate = showDate && createdAt ? formatRelativeDate(new Date(createdAt)) : null;
+  const displayDate =
+    showDate && createdAt ? formatRelativeDate(new Date(createdAt)) : null;
 
   if (cardStyle === "minimal") {
     return (
-      <article className="masonry-item card-minimal" aria-label={`Testimonial from ${author}`}>
-        <p className="line-clamp-10 text-foreground leading-relaxed">
+      <article
+        className="masonry-item mb-4 px-2 py-1"
+        aria-label={`Testimonial from ${author}`}
+      >
+        <p className="text-base text-foreground leading-relaxed">
           &ldquo;{content}&rdquo;
         </p>
-        <div className="mt-3 flex items-center gap-2">
+        <div className="mt-3 flex items-center gap-2.5">
           {showAvatar && <Avatar name={author} accentColor={accentColor} />}
-          <span className="text-sm font-medium">{author}</span>
-          {displayDate && (
-            <span className="text-xs text-muted-foreground">{displayDate}</span>
-          )}
+          <div className="flex items-center gap-2">
+            <span className="text-sm font-medium">{author}</span>
+            {displayDate && (
+              <span className="text-xs text-muted-foreground">
+                &middot; {displayDate}
+              </span>
+            )}
+          </div>
           {displayRating && (
             <StarDisplay rating={displayRating} accentColor={accentColor} />
           )}
@@ -115,19 +123,27 @@ export function TestimonialCard({
   if (cardStyle === "bordered") {
     return (
       <article
-        className="masonry-item card-bordered"
-        style={{ borderLeftColor: accentColor }}
+        className="masonry-item mb-4 rounded-xl border border-border/50 bg-card p-6"
+        style={{ borderLeftColor: accentColor, borderLeftWidth: "3px" }}
         aria-label={`Testimonial from ${author}`}
       >
-        <p className="line-clamp-10 text-card-foreground leading-relaxed">
-          &ldquo;{content}&rdquo;
-        </p>
-        <div className="mt-4 flex items-center gap-2">
+        <div className="mb-3">
+          <Quote
+            className="h-5 w-5 mb-2"
+            style={{ color: `${accentColor}40` }}
+          />
+          <p className="text-base text-card-foreground leading-relaxed">
+            &ldquo;{content}&rdquo;
+          </p>
+        </div>
+        <div className="flex items-center gap-2.5 pt-3 border-t border-border/50">
           {showAvatar && <Avatar name={author} accentColor={accentColor} />}
           <div className="flex flex-col">
             <span className="text-sm font-medium">{author}</span>
             {displayDate && (
-              <span className="text-xs text-muted-foreground">{displayDate}</span>
+              <span className="text-xs text-muted-foreground">
+                {displayDate}
+              </span>
             )}
           </div>
           {displayRating && (
@@ -142,18 +158,22 @@ export function TestimonialCard({
 
   return (
     <article
-      className="masonry-item card-default"
+      className="masonry-item mb-4 rounded-xl border border-border/50 bg-card p-6 transition-colors hover:border-foreground/10"
       aria-label={`Testimonial from ${author}`}
     >
       {displayRating && (
-        <div className="mb-2">
+        <div className="mb-3">
           <StarDisplay rating={displayRating} accentColor={accentColor} />
         </div>
       )}
-      <p className="line-clamp-10 text-card-foreground leading-relaxed">
+      <Quote
+        className="h-5 w-5 mb-2"
+        style={{ color: `${accentColor}40` }}
+      />
+      <p className="text-base text-card-foreground leading-relaxed">
         &ldquo;{content}&rdquo;
       </p>
-      <div className="mt-4 flex items-center gap-2">
+      <div className="mt-4 flex items-center gap-2.5">
         {showAvatar && <Avatar name={author} accentColor={accentColor} />}
         <div className="flex flex-col">
           <span className="text-sm font-medium">{author}</span>
