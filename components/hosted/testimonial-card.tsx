@@ -1,4 +1,3 @@
-import { cn } from "@/lib/utils";
 import { Star, Quote } from "lucide-react";
 
 export interface TestimonialCardProps {
