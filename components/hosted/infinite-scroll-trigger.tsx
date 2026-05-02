@@ -11,8 +11,16 @@ interface InfiniteScrollTriggerProps {
 
 function SkeletonCard() {
   return (
-    <div className="masonry-item">
-      <div className="skeleton h-40 w-full rounded-xl" />
+    <div className="masonry-item mb-4">
+      <div className="rounded-xl border border-border/50 bg-card p-6">
+        <div className="skeleton h-3 w-20 mb-4 rounded" />
+        <div className="skeleton h-4 w-full mb-2 rounded" />
+        <div className="skeleton h-4 w-3/4 mb-4 rounded" />
+        <div className="flex items-center gap-2.5">
+          <div className="skeleton h-8 w-8 rounded-full" />
+          <div className="skeleton h-3 w-24 rounded" />
+        </div>
+      </div>
     </div>
   );
 }
@@ -66,8 +74,6 @@ export function InfiniteScrollTrigger({
           ))}
         </div>
       )}
-
-      {!hasMore && isLoading && null}
 
       {hasMore && (
         <div ref={sentinelRef} className="h-1" aria-hidden="true" />

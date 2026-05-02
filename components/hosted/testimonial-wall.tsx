@@ -1,12 +1,15 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import useSWRInfinite from "swr/infinite";
 import { MasonryGrid } from "./masonry-grid";
 import { TestimonialCard } from "./testimonial-card";
 import { InfiniteScrollTrigger } from "./infinite-scroll-trigger";
 import { WallHeader } from "./wall-header";
 import { WallFooter } from "./wall-footer";
+import { useTheme } from "next-themes";
+import { Button } from "@/components/ui/button";
+import { ArrowRight, Quote } from "lucide-react";
 
 interface TestimonialItem {
   id: string;
@@ -63,6 +66,17 @@ export function TestimonialWall({
   const showRating = branding?.wallShowRating ?? true;
   const showDate = branding?.wallShowDate ?? false;
   const showAvatar = branding?.wallShowAvatar ?? true;
+  const wallTheme = branding?.wallTheme ?? "auto";
+
+  const { setTheme } = useTheme();
+
+  useEffect(() => {
+    if (wallTheme === "light" || wallTheme === "dark") {
+      setTheme(wallTheme);
+    } else {
+      setTheme("system");
+    }
+  }, [wallTheme, setTheme]);
 
   const [retryCount, setRetryCount] = useState(0);
 
@@ -105,52 +119,55 @@ export function TestimonialWall({
 
   if (allTestimonials.length === 0) {
     return (
-      <div
-        className="mx-auto min-h-screen w-full max-w-6xl px-6 py-12"
-        style={{ "--accent-color": accentColor } as React.CSSProperties}
-      >
-        <div className="flex flex-col gap-8">
-          <WallHeader
-            siteName={siteName}
-            heading={branding?.heading}
-            count={0}
-            slug={slug}
-            accentColor={accentColor}
-          />
-
-          <div className="flex flex-col items-center gap-4 py-16 text-center">
-            <p className="text-lg text-muted-foreground">
-              No testimonials yet.
-            </p>
+      <div className="min-h-screen flex flex-col" style={{ "--accent-color": accentColor } as React.CSSProperties}>
+        <WallHeader
+          siteName={siteName}
+          heading={branding?.heading}
+          count={0}
+          slug={slug}
+          accentColor={accentColor}
+        />
+        <div className="flex-1 flex items-center justify-center">
+          <div className="flex flex-col items-center gap-6 text-center px-6">
+            <div
+              className="flex h-16 w-16 items-center justify-center rounded-2xl"
+              style={{ backgroundColor: `${accentColor}12` }}
+            >
+              <Quote className="h-7 w-7" style={{ color: accentColor }} />
+            </div>
+            <div>
+              <h2 className="text-xl font-semibold tracking-tight mb-2">
+                No testimonials yet
+              </h2>
+              <p className="text-muted-foreground max-w-sm">
+                Be the first to share your experience with {siteName}.
+              </p>
+            </div>
             <a
               href={`/t/${slug}`}
-              className="text-sm underline underline-offset-4 transition-colors hover:text-foreground"
-              style={{ color: accentColor }}
+              className="rounded-full px-6 py-2.5 text-sm font-medium transition-colors"
+              style={{ backgroundColor: accentColor, color: "white" }}
             >
-              Be the first to share your experience
+              Share your experience
             </a>
           </div>
-
-          <WallFooter accentColor={accentColor} />
         </div>
+        <WallFooter accentColor={accentColor} />
       </div>
     );
   }
 
   return (
-    <div
-      className="mx-auto min-h-screen w-full max-w-6xl px-6 py-12"
-      style={{ "--accent-color": accentColor } as React.CSSProperties}
-    >
-      <div className="flex flex-col gap-8">
-        <WallHeader
-          siteName={siteName}
-          heading={branding?.heading}
-          count={initialCount}
-          slug={slug}
-          accentColor={accentColor}
-        />
+    <div className="min-h-screen flex flex-col" style={{ "--accent-color": accentColor } as React.CSSProperties}>
+      <WallHeader
+        siteName={siteName}
+        heading={branding?.heading}
+        count={initialCount}
+        slug={slug}
+        accentColor={accentColor}
+      />
 
+      <div className="flex-1 mx-auto w-full max-w-6xl px-6 pb-16">
         <MasonryGrid columns={columns}>
           {allTestimonials.map((t) => (
             <TestimonialCard
@@ -170,13 +187,13 @@ export function TestimonialWall({
         </MasonryGrid>
 
         {error && (
-          <div className="flex flex-col items-center gap-2 py-4 text-center">
+          <div className="flex flex-col items-center gap-3 py-8 text-center">
             <p className="text-sm text-muted-foreground">
               Failed to load more testimonials.
             </p>
             <button
               onClick={handleRetry}
-              className="text-sm underline underline-offset-4 transition-colors hover:text-foreground"
+              className="text-sm font-medium underline underline-offset-4 transition-colors hover:text-foreground"
               style={{ color: accentColor }}
             >
               Try again
@@ -190,9 +207,9 @@ export function TestimonialWall({
           onLoadMore={handleLoadMore}
           columns={columns}
         />
-
-        <WallFooter accentColor={accentColor} />
       </div>
+
+      <WallFooter accentColor={accentColor} />
     </div>
   );
 }
