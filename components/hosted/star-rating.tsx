@@ -34,11 +34,13 @@ export function StarRating({
             aria-pressed={isSelected}
           >
             <Star
-              className="h-6 w-6"
+              className={cn(
+                "h-6 w-6",
+                isSelected && !accentColor && "text-primary"
+              )}
               fill={isSelected ? (accentColor ?? "currentColor") : "transparent"}
               stroke={isSelected ? (accentColor ?? "currentColor") : "currentColor"}
               strokeWidth={isSelected ? 2.5 : 1.5}
-              {...(isSelected && !accentColor ? { className: "text-primary" } : {})}
             />
           </button>
         );
