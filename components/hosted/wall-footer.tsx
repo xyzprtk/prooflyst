@@ -1,4 +1,5 @@
 import { Logo } from "@/components/logo";
+import { cn } from "@/lib/utils";
 
 interface WallFooterProps {
   accentColor?: string;
