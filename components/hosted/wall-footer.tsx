@@ -1,11 +1,6 @@
 import { Logo } from "@/components/logo";
-import { cn } from "@/lib/utils";
 
-interface WallFooterProps {
-  accentColor?: string;
-}
-
-export function WallFooter({ accentColor }: WallFooterProps) {
+export function WallFooter() {
   const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "https://prooflyst.com";
 
   return (

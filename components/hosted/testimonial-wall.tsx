@@ -161,7 +161,7 @@ export function TestimonialWall({
             </a>
           </div>
         </div>
-        <WallFooter accentColor={accentColor} />
+        <WallFooter />
       </div>
     );
   }
@@ -221,7 +221,7 @@ export function TestimonialWall({
         />
       </div>
 
-      <WallFooter accentColor={accentColor} />
+      <WallFooter />
     </div>
   );
 }
