@@ -1,3 +1,4 @@
+import { cn } from "@/lib/utils";
 import { Star, Quote } from "lucide-react";
 
 export interface TestimonialCardProps {
@@ -34,7 +35,7 @@ function Avatar({
   accentColor,
 }: {
   name: string;
-  accentColor: string;
+  accentColor?: string;
 }) {
   const initials = name
     .split(" ")
@@ -42,11 +43,19 @@ function Avatar({
     .join("")
     .slice(0, 2);
 
+  if (accentColor) {
+    return (
+      <div
+        className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-xs font-semibold"
+        style={{ backgroundColor: `${accentColor}15`, color: accentColor }}
+      >
+        {initials}
+      </div>
+    );
+  }
+
   return (
-    <div
-      className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-xs font-semibold"
-      style={{ backgroundColor: `${accentColor}15`, color: accentColor }}
-    >
+    <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary/10 text-xs font-semibold text-primary">
       {initials}
     </div>
   );
@@ -57,24 +66,45 @@ function StarDisplay({
   accentColor,
 }: {
   rating: number;
-  accentColor: string;
+  accentColor?: string;
 }) {
   return (
     <div className="flex gap-0.5" aria-label={`Rated ${rating} out of 5`}>
       {[1, 2, 3, 4, 5].map((star) => {
         const isFilled = rating >= star;
+        if (accentColor) {
+          return (
+            <Star
+              key={star}
+              className="h-3 w-3"
+              fill={isFilled ? accentColor : "transparent"}
+              stroke={isFilled ? accentColor : "currentColor"}
+              strokeWidth={isFilled ? 2.5 : 1.5}
+            />
+          );
+        }
         return (
           <Star
             key={star}
-            className="h-3 w-3"
-            fill={isFilled ? accentColor : "transparent"}
-            stroke={isFilled ? accentColor : "currentColor"}
+            className={cn(
+              "h-3 w-3",
+              isFilled
+                ? "fill-primary text-primary"
+                : "fill-transparent text-muted-foreground"
+            )}
             strokeWidth={isFilled ? 2.5 : 1.5}
           />
         );
       })}
     </div>
   );
+}
+
+function QuoteIcon({ accentColor }: { accentColor?: string }) {
+  if (accentColor) {
+    return <Quote className="h-5 w-5 mb-2" style={{ color: `${accentColor}40` }} />;
+  }
+  return <Quote className="h-5 w-5 mb-2 text-primary/30" />;
 }
 
 export function TestimonialCard({
@@ -86,7 +116,7 @@ export function TestimonialCard({
   showRating = true,
   showDate = false,
   showAvatar = true,
-  accentColor = "#6366f1",
+  accentColor,
 }: TestimonialCardProps) {
   const displayRating = showRating && rating ? rating : null;
   const displayDate =
@@ -122,15 +152,15 @@ export function TestimonialCard({
   if (cardStyle === "bordered") {
     return (
       <article
-        className="masonry-item mb-4 rounded-xl border border-border/50 bg-card p-6"
-        style={{ borderLeftColor: accentColor, borderLeftWidth: "3px" }}
+        className={cn(
+          "masonry-item mb-4 rounded-xl border border-border/50 bg-card p-6",
+          !accentColor && "border-l-primary"
+        )}
+        style={accentColor ? { borderLeftColor: accentColor, borderLeftWidth: "3px" } : undefined}
         aria-label={`Testimonial from ${author}`}
       >
         <div className="mb-3">
-          <Quote
-            className="h-5 w-5 mb-2"
-            style={{ color: `${accentColor}40` }}
-          />
+          <QuoteIcon accentColor={accentColor} />
           <p className="text-base text-card-foreground leading-relaxed">
             &ldquo;{content}&rdquo;
           </p>
@@ -165,10 +195,7 @@ export function TestimonialCard({
           <StarDisplay rating={displayRating} accentColor={accentColor} />
         </div>
       )}
-      <Quote
-        className="h-5 w-5 mb-2"
-        style={{ color: `${accentColor}40` }}
-      />
+      <QuoteIcon accentColor={accentColor} />
       <p className="text-base text-card-foreground leading-relaxed">
         &ldquo;{content}&rdquo;
       </p>
