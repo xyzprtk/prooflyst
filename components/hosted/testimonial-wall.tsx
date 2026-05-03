@@ -7,9 +7,9 @@ import { TestimonialCard } from "./testimonial-card";
 import { InfiniteScrollTrigger } from "./infinite-scroll-trigger";
 import { WallHeader } from "./wall-header";
 import { WallFooter } from "./wall-footer";
+import { cn } from "@/lib/utils";
 import { useTheme } from "next-themes";
-import { Button } from "@/components/ui/button";
-import { ArrowRight, Quote } from "lucide-react";
+import { Quote } from "lucide-react";
 
 interface TestimonialItem {
   id: string;
@@ -62,7 +62,7 @@ export function TestimonialWall({
 }: TestimonialWallProps) {
   const columns = branding?.wallColumns ?? 3;
   const cardStyle = branding?.wallCardStyle ?? "default";
-  const accentColor = branding?.accentColor ?? "#6366f1";
+  const accentColor = branding?.accentColor;
   const showRating = branding?.wallShowRating ?? true;
   const showDate = branding?.wallShowDate ?? false;
   const showAvatar = branding?.wallShowAvatar ?? true;
@@ -119,7 +119,7 @@ export function TestimonialWall({
 
   if (allTestimonials.length === 0) {
     return (
-      <div className="min-h-screen flex flex-col" style={{ "--accent-color": accentColor } as React.CSSProperties}>
+      <div className="min-h-screen flex flex-col">
         <WallHeader
           siteName={siteName}
           heading={branding?.heading}
@@ -130,10 +130,16 @@ export function TestimonialWall({
         <div className="flex-1 flex items-center justify-center">
           <div className="flex flex-col items-center gap-6 text-center px-6">
             <div
-              className="flex h-16 w-16 items-center justify-center rounded-2xl"
-              style={{ backgroundColor: `${accentColor}12` }}
+              className={cn(
+                "flex h-16 w-16 items-center justify-center rounded-2xl",
+                !accentColor && "bg-primary/10"
+              )}
+              {...(accentColor ? { style: { backgroundColor: `${accentColor}12` } } : {})}
             >
-              <Quote className="h-7 w-7" style={{ color: accentColor }} />
+              <Quote
+                className="h-7 w-7"
+                {...(accentColor ? { style: { color: accentColor } } : { className: "text-primary" })}
+              />
             </div>
             <div>
               <h2 className="text-xl font-semibold tracking-tight mb-2">
@@ -145,8 +151,11 @@ export function TestimonialWall({
             </div>
             <a
               href={`/t/${slug}`}
-              className="rounded-full px-6 py-2.5 text-sm font-medium transition-colors"
-              style={{ backgroundColor: accentColor, color: "white" }}
+              className={cn(
+                "rounded-full px-6 py-2.5 text-sm font-medium transition-colors",
+                !accentColor && "bg-primary text-primary-foreground hover:bg-primary/90"
+              )}
+              {...(accentColor ? { style: { backgroundColor: accentColor, color: "white" } } : {})}
             >
               Share your experience
             </a>
@@ -158,7 +167,7 @@ export function TestimonialWall({
   }
 
   return (
-    <div className="min-h-screen flex flex-col" style={{ "--accent-color": accentColor } as React.CSSProperties}>
+    <div className="min-h-screen flex flex-col">
       <WallHeader
         siteName={siteName}
         heading={branding?.heading}
@@ -193,8 +202,11 @@ export function TestimonialWall({
             </p>
             <button
               onClick={handleRetry}
-              className="text-sm font-medium underline underline-offset-4 transition-colors hover:text-foreground"
-              style={{ color: accentColor }}
+              className={cn(
+                "text-sm font-medium underline underline-offset-4 transition-colors hover:text-foreground",
+                !accentColor && "text-primary"
+              )}
+              {...(accentColor ? { style: { color: accentColor } } : {})}
             >
               Try again
             </button>
