@@ -4,12 +4,13 @@ import { useState } from "react";
 import { Check, Loader2 } from "lucide-react";
 import { StarRating } from "./star-rating";
 import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 
 interface TestimonialFormProps {
   siteId: string;
   publicKey: string;
   siteName: string;
-  accentColor: string;
+  accentColor?: string;
   thankYouMessage: string;
 }
 
@@ -87,12 +88,18 @@ export function TestimonialForm({
 
   if (formState === "success") {
     return (
-      <div className="flex flex-col items-center gap-4 py-8 text-center">
+      <div className="flex flex-col items-center gap-4 py-12 text-center">
         <div
-          className="flex h-16 w-16 items-center justify-center rounded-full"
-          style={{ backgroundColor: `${accentColor}20` }}
+          className={cn(
+            "flex h-16 w-16 items-center justify-center rounded-full",
+            !accentColor && "bg-primary/10"
+          )}
+          {...(accentColor ? { style: { backgroundColor: `${accentColor}20` } } : {})}
         >
-          <Check className="h-8 w-8" style={{ color: accentColor }} />
+          <Check
+            className="h-8 w-8"
+            {...(accentColor ? { style: { color: accentColor } } : { className: "text-primary" })}
+          />
         </div>
         <p className="text-lg font-medium">{thankYouMessage}</p>
         <p className="text-sm text-muted-foreground">
@@ -168,8 +175,11 @@ export function TestimonialForm({
       <Button
         type="submit"
         disabled={!canSubmit}
-        style={{ backgroundColor: accentColor }}
-        className="mt-2 w-full"
+        className={cn(
+          "mt-2 w-full",
+          !accentColor && "bg-primary text-primary-foreground hover:bg-primary/90"
+        )}
+        {...(accentColor ? { style: { backgroundColor: accentColor, color: "white" } } : {})}
       >
         {formState === "submitting" ? (
           <>

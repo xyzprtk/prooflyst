@@ -13,7 +13,7 @@ interface StarRatingProps {
 export function StarRating({
   value,
   onChange,
-  accentColor = "#6366f1",
+  accentColor,
   disabled = false,
 }: StarRatingProps) {
   return (
@@ -34,9 +34,12 @@ export function StarRating({
             aria-pressed={isSelected}
           >
             <Star
-              className="h-6 w-6"
-              fill={isSelected ? accentColor : "transparent"}
-              stroke={isSelected ? accentColor : "currentColor"}
+              className={cn(
+                "h-6 w-6",
+                isSelected && !accentColor && "text-primary"
+              )}
+              fill={isSelected ? (accentColor ?? "currentColor") : "transparent"}
+              stroke={isSelected ? (accentColor ?? "currentColor") : "currentColor"}
               strokeWidth={isSelected ? 2.5 : 1.5}
             />
           </button>

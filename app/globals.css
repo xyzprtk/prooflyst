@@ -154,3 +154,107 @@
   animation: fadeIn 0.6s ease-out 0.3s forwards;
   opacity: 0;
 }
+
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
+}
+
+.animate-blink {
+  animation: blink 1s step-end infinite;
+}
+
+/* Masonry layout */
+.masonry-grid {
+  column-gap: 1rem;
+}
+
+.masonry-grid-2 {
+  columns: 1;
+}
+
+.masonry-grid-3 {
+  columns: 1;
+}
+
+.masonry-grid-4 {
+  columns: 1;
+}
+
+@media (min-width: 640px) {
+  .masonry-grid-2 {
+    columns: 2;
+  }
+  .masonry-grid-3 {
+    columns: 2;
+  }
+  .masonry-grid-4 {
+    columns: 2;
+  }
+}
+
+@media (min-width: 1024px) {
+  .masonry-grid-3 {
+    columns: 3;
+  }
+  .masonry-grid-4 {
+    columns: 4;
+  }
+}
+
+.masonry-item {
+  break-inside: avoid;
+}
+
+/* Accent color utility */
+.accent-color {
+  color: var(--accent-color, #6366f1);
+}
+
+.accent-bg {
+  background-color: var(--accent-color, #6366f1);
+}
+
+/* Skeleton loading */
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+.skeleton {
+  background: linear-gradient(
+    90deg,
+    var(--muted) 25%,
+    color-mix(in oklch, var(--muted) 70%, var(--foreground)) 50%,
+    var(--muted) 75%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.5s ease-in-out infinite;
+  border-radius: 0.375rem;
+}
+
+/* Content clamping */
+.line-clamp-3 {
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.line-clamp-6 {
+  display: -webkit-box;
+  -webkit-line-clamp: 6;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.line-clamp-10 {
+  display: -webkit-box;
+  -webkit-line-clamp: 10;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}

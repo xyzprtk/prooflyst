@@ -1,9 +1,12 @@
 "use client";
 
-import dynamic from "next/dynamic";
 import Image from "next/image";
 
-function LogoInner({ size = 32 }: { size?: number }) {
+interface LogoProps {
+  size?: number;
+}
+
+export function Logo({ size = 20 }: LogoProps) {
   return (
     <div className="relative" style={{ width: size, height: size }}>
       <Image
@@ -23,8 +26,3 @@ function LogoInner({ size = 32 }: { size?: number }) {
     </div>
   );
 }
-
-export const Logo = dynamic(() => Promise.resolve(LogoInner), {
-  ssr: false,
-  loading: () => <div style={{ width: 32, height: 32 }} />,
-});

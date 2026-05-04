@@ -20,6 +20,12 @@ export const sites = pgTable("sites", {
     thankYou?: string;
     accentColor?: string;
     wallLayout?: "grid" | "list";
+    wallColumns?: 2 | 3 | 4;
+    wallCardStyle?: "default" | "minimal" | "bordered";
+    wallShowRating?: boolean;
+    wallShowDate?: boolean;
+    wallShowAvatar?: boolean;
+    wallTheme?: "light" | "dark" | "auto";
   }>(),
   createdAt: timestamp("created_at", { withTimezone: true })
     .defaultNow()
