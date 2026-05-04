@@ -16,7 +16,6 @@ export function FinalCTASectionV3() {
 
       <div className="relative mx-auto max-w-3xl px-6 text-center">
         <FadeIn>
-          <p className="text-xs font-mono text-muted-foreground mb-6">// final_cta</p>
           <h2 className="text-3xl md:text-4xl font-mono font-medium tracking-tighter mb-6">
             <span className="text-primary">&gt;</span> Your product already has proof.
           </h2>

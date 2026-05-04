@@ -9,7 +9,6 @@ export function PhilosophySectionV3() {
       <AsciiGridPattern />
       <div className="relative mx-auto max-w-3xl px-6 text-center">
         <FadeIn>
-          <p className="text-xs font-mono text-muted-foreground mb-6">// philosophy</p>
           <h2 className="text-3xl md:text-4xl font-mono font-medium tracking-tighter mb-12">
             Proof compounds.
           </h2>

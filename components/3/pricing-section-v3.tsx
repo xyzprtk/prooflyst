@@ -25,7 +25,6 @@ export function PricingSectionV3() {
     <section id="pricing" className="py-32">
       <div className="mx-auto max-w-7xl px-6">
         <FadeIn className="text-center max-w-2xl mx-auto mb-20">
-          <p className="text-xs font-mono text-muted-foreground mb-3">// pricing</p>
           <h2 className="text-2xl md:text-3xl font-mono font-medium tracking-tight mb-4">
             Simple pricing. No nonsense.
           </h2>

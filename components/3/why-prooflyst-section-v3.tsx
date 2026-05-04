@@ -42,7 +42,6 @@ export function WhyProoflystSectionV3() {
     <section className="py-32">
       <div className="mx-auto max-w-7xl px-6">
         <FadeIn className="mb-20 max-w-xl">
-          <p className="text-xs font-mono text-muted-foreground mb-3">// developer_contrast</p>
           <h2 className="text-2xl md:text-3xl font-mono font-medium tracking-tight mb-4">
             Stop writing spaghetti code.
           </h2>

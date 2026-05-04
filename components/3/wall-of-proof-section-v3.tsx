@@ -18,7 +18,6 @@ export function WallOfProofSectionV3() {
     <section className="py-32">
       <div className="mx-auto max-w-7xl px-6">
         <FadeIn className="max-w-2xl mb-20">
-          <p className="text-xs font-mono text-muted-foreground mb-3">// wall_of_proof</p>
           <h2 className="text-2xl md:text-3xl font-mono font-medium tracking-tight mb-4">
             Your proof, all in one place.
           </h2>
