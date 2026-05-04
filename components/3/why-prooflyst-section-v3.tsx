@@ -42,28 +42,15 @@ export function WhyProoflystSectionV3() {
     <section className="py-32">
       <div className="mx-auto max-w-7xl px-6">
         <FadeIn className="mb-20 max-w-xl">
-          <h2 className="text-2xl md:text-3xl font-mono font-medium tracking-tight mb-4">
-            Stop writing spaghetti code.
+          <h2 className="text-2xl md:text-3xl font-semibold tracking-tight mb-4">
+            Developer Contrast
           </h2>
           <p className="text-base text-muted-foreground leading-relaxed">
-            One API call. That&apos;s it.
+            Stop writing spaghetti code to manage testimonials.
           </p>
         </FadeIn>
 
         <div className="grid md:grid-cols-2 gap-6 relative">
-          {/* VS indicator */}
-          <div className="hidden md:flex absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-10">
-            <motion.div
-              initial={{ opacity: 0, scale: 0.8 }}
-              whileInView={{ opacity: 1, scale: 1 }}
-              viewport={{ once: true }}
-              transition={{ delay: 0.4, duration: 0.3 }}
-              className="h-10 w-10 rounded-full bg-background border border-border/50 flex items-center justify-center font-mono text-xs text-muted-foreground"
-            >
-              VS
-            </motion.div>
-          </div>
-
           <FadeIn direction="left">
             <TerminalCard title="old_way.js" variant="error">
               <pre className="text-xs text-red-300/70 font-mono overflow-x-auto leading-relaxed">

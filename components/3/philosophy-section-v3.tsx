@@ -1,15 +1,13 @@
 "use client";
 
 import { FadeIn } from "./motion-utils";
-import { AsciiGridPattern } from "./ascii-art";
 
 export function PhilosophySectionV3() {
   return (
-    <section className="py-40 border-t border-border/20 relative overflow-hidden">
-      <AsciiGridPattern />
+    <section className="py-40 border-t border-border/20">
       <div className="relative mx-auto max-w-3xl px-6 text-center">
         <FadeIn>
-          <h2 className="text-3xl md:text-4xl font-mono font-medium tracking-tighter mb-12">
+          <h2 className="text-3xl md:text-4xl font-semibold tracking-tighter mb-12">
             Proof compounds.
           </h2>
         </FadeIn>
@@ -21,7 +19,7 @@ export function PhilosophySectionV3() {
             <p>
               Prooflyst turns scattered praise into something structured, searchable, and reusable.
             </p>
-            <p className="text-xl font-mono font-medium text-primary">
+            <p className="text-xl font-semibold text-foreground">
               Because trust isn&apos;t built once. It&apos;s built continuously.
             </p>
           </div>

@@ -17,14 +17,14 @@ export function TerminalCard({
   noChrome = false,
 }: TerminalCardProps) {
   const borderColors = {
-    default: "border-white/10 dark:border-white/10",
+    default: "border-border/50",
     error: "border-destructive/20",
     success: "border-emerald-500/20",
     primary: "border-primary/20",
   };
 
   const titleColors = {
-    default: "text-white/40",
+    default: "text-muted-foreground",
     error: "text-destructive/60",
     success: "text-emerald-500/60",
     primary: "text-primary/60",
@@ -33,13 +33,13 @@ export function TerminalCard({
   return (
     <div
       className={cn(
-        "rounded-xl border overflow-hidden bg-[#0d0d0d] dark:bg-[#0d0d0d]",
+        "rounded-xl border overflow-hidden bg-card",
         borderColors[variant],
         className
       )}
     >
       {!noChrome && (
-        <div className="flex items-center gap-2 px-4 py-2.5 border-b border-white/5">
+        <div className="flex items-center gap-2 px-4 py-2.5 border-b border-border/30">
           <div className="flex gap-1.5">
             <div className="h-2.5 w-2.5 rounded-full bg-red-500/50" />
             <div className="h-2.5 w-2.5 rounded-full bg-yellow-500/50" />
