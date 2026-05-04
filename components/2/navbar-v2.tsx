@@ -58,49 +58,49 @@ export function NavbarV2() {
           : "border border-white/10 dark:border-slate-900/10"
       )}
     >
-      <div className="flex h-12 items-center justify-between px-5 min-w-[720px] max-w-3xl">
-        <Link href="/" className="flex items-center gap-2">
+      <div className="flex h-14 items-center justify-between px-7 min-w-[760px] max-w-3xl">
+        <Link href="/" className="flex items-center gap-2.5">
           <LogoInverse />
           <span className="text-base font-semibold tracking-tight text-white dark:text-slate-900">
             Prooflyst
           </span>
         </Link>
 
-        <div className="hidden items-center gap-1 rounded-full bg-white/5 dark:bg-slate-900/5 p-1 md:flex">
+        <div className="hidden items-center gap-1 rounded-full bg-white/[0.08] dark:bg-slate-900/[0.08] border border-white/10 dark:border-slate-900/10 p-1.5 md:flex">
           <Link
             href="#features"
-            className="rounded-full px-4 py-1.5 text-sm text-slate-300 dark:text-slate-600 hover:text-white dark:hover:text-slate-900 hover:bg-white/5 dark:hover:bg-slate-900/5 transition-colors"
+            className="rounded-full px-5 py-2 text-sm text-slate-300 dark:text-slate-500 hover:text-white dark:hover:text-slate-900 hover:bg-white/10 dark:hover:bg-slate-900/10 transition-colors"
           >
             Features
           </Link>
           <Link
             href="#api"
-            className="rounded-full px-4 py-1.5 text-sm text-slate-300 dark:text-slate-600 hover:text-white dark:hover:text-slate-900 hover:bg-white/5 dark:hover:bg-slate-900/5 transition-colors"
+            className="rounded-full px-5 py-2 text-sm text-slate-300 dark:text-slate-500 hover:text-white dark:hover:text-slate-900 hover:bg-white/10 dark:hover:bg-slate-900/10 transition-colors"
           >
             API
           </Link>
           <Link
             href="#pricing"
-            className="rounded-full px-4 py-1.5 text-sm text-slate-300 dark:text-slate-600 hover:text-white dark:hover:text-slate-900 hover:bg-white/5 dark:hover:bg-slate-900/5 transition-colors"
+            className="rounded-full px-5 py-2 text-sm text-slate-300 dark:text-slate-500 hover:text-white dark:hover:text-slate-900 hover:bg-white/10 dark:hover:bg-slate-900/10 transition-colors"
           >
             Pricing
           </Link>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-3">
           <ThemeToggle inverse />
           <Link
             href="https://github.com/xyzprtk/prooflyst"
             target="_blank"
             rel="noopener noreferrer"
-            className="rounded-full px-4 py-1.5 text-sm text-slate-300 dark:text-slate-600 hover:text-white dark:hover:text-slate-900 hover:bg-white/10 dark:hover:bg-slate-900/10 transition-colors"
+            className="rounded-full px-5 py-2 text-sm text-slate-300 dark:text-slate-500 hover:text-white dark:hover:text-slate-900 hover:bg-white/10 dark:hover:bg-slate-900/10 transition-colors"
           >
             GitHub
           </Link>
           <Link
             href="/dashboard/setup"
             className={cn(
-              "rounded-full px-5 py-2 text-sm font-medium transition-colors",
+              "rounded-full px-6 py-2.5 text-sm font-medium transition-colors",
               "bg-white text-slate-900 hover:bg-white/90 dark:bg-slate-900 dark:text-white dark:hover:bg-slate-900/90"
             )}
           >
