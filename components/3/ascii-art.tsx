@@ -2,7 +2,7 @@
 
 export function AsciiLogo() {
   return (
-    <pre className="font-mono text-[6px] sm:text-[7px] md:text-[8px] leading-[1.1] text-foreground/[0.08] select-none whitespace-pre">
+    <pre className="font-mono text-[7px] sm:text-[8px] md:text-[9px] leading-[1.1] text-foreground/20 select-none whitespace-pre">
 {`    ██████╗ ██████╗  ██████╗  ██████╗ ███████╗██╗     ██╗   ██╗███████╗████████╗
     ██╔══██╗██╔══██╗██╔═══██╗██╔═══██╗██╔════╝██║     ██║   ██║██╔════╝╚══██╔══╝
     ██████╔╝██████╔╝██║   ██║██║   ██║█████╗  ██║     ██║   ██║███████╗   ██║   
@@ -22,7 +22,7 @@ export function AsciiBox({ width = 40, height = 12 }: { width?: number; height?:
   lines.push(bottom);
 
   return (
-    <pre className="font-mono text-[8px] leading-[1.2] text-foreground/[0.08] select-none whitespace-pre">
+    <pre className="font-mono text-[8px] leading-[1.2] text-foreground/20 select-none whitespace-pre">
       {lines.join("\n")}
     </pre>
   );

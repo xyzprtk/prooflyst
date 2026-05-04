@@ -10,8 +10,8 @@ import { TypewriterText } from "./motion-utils";
 export function HeroSectionV3() {
   return (
     <section className="relative min-h-screen flex items-center justify-center pt-20 overflow-hidden">
-      {/* Subtle monochrome gradient bg */}
-      <div className="absolute inset-0 -z-10 bg-[linear-gradient(180deg,#050505_0%,#0a0a0a_40%,#060606_100%)] dark:bg-[linear-gradient(180deg,#fafafa_0%,#f5f5f5_40%,#fafafa_100%)]" />
+      {/* Monochrome gradient bg — light in light mode, dark in dark mode */}
+      <div className="absolute inset-0 -z-10 bg-[linear-gradient(180deg,#fafafa_0%,#f5f5f5_40%,#fafafa_100%)] dark:bg-[linear-gradient(180deg,#050505_0%,#0a0a0a_40%,#060606_100%)]" />
 
       <div className="mx-auto max-w-4xl px-6 py-32 text-center">
         {/* ASCII Logo */}
