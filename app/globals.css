@@ -155,6 +155,15 @@
   opacity: 0;
 }
 
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
+}
+
+.animate-blink {
+  animation: blink 1s step-end infinite;
+}
+
 /* Masonry layout */
 .masonry-grid {
   column-gap: 1rem;
@@ -248,50 +257,4 @@
   -webkit-line-clamp: 10;
   -webkit-box-orient: vertical;
   overflow: hidden;
-}
-
-/* ─── Retro /3 utilities ─── */
-
-@keyframes blink {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0; }
-}
-
-.animate-blink {
-  animation: blink 1s step-end infinite;
-}
-
-.scanlines {
-  position: relative;
-}
-
-.scanlines::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  background: repeating-linear-gradient(
-    0deg,
-    transparent,
-    transparent 2px,
-    rgba(0, 0, 0, 0.02) 2px,
-    rgba(0, 0, 0, 0.02) 4px
-  );
-  border-radius: inherit;
-}
-
-.dark .scanlines::after {
-  background: repeating-linear-gradient(
-    0deg,
-    transparent,
-    transparent 2px,
-    rgba(255, 255, 255, 0.015) 2px,
-    rgba(255, 255, 255, 0.015) 4px
-  );
-}
-
-.ascii-grid-bg {
-  background-image: radial-gradient(circle, currentColor 0.5px, transparent 0.5px);
-  background-size: 24px 24px;
-  opacity: 0.04;
 }
