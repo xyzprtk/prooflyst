@@ -20,6 +20,12 @@ export const createSiteSchema = z.object({
         .regex(/^#[0-9a-fA-F]{6}$/, "Must be a valid hex color")
         .optional(),
       wallLayout: z.enum(["grid", "list"]).optional(),
+      wallColumns: z.union([z.literal(2), z.literal(3), z.literal(4)]).optional(),
+      wallCardStyle: z.enum(["default", "minimal", "bordered"]).optional(),
+      wallShowRating: z.boolean().optional(),
+      wallShowDate: z.boolean().optional(),
+      wallShowAvatar: z.boolean().optional(),
+      wallTheme: z.enum(["light", "dark", "auto"]).optional(),
     })
     .optional(),
   webhookUrl: z.url().optional(),

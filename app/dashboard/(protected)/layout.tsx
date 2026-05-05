@@ -1,46 +1,26 @@
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import { eq } from "drizzle-orm";
-import { Zap } from "lucide-react";
+import { Logo } from "@/components/logo";
 import { LogoutButton } from "@/components/dashboard/logout-button";
-import { db, isDbAvailable } from "@/lib/db";
+import { ThemeToggle } from "@/components/theme-toggle";
+import { db } from "@/lib/db";
 import { sites } from "@/lib/db/schema";
 import { hashKey } from "@/lib/keys";
-import { getLocalSiteByAdminHash } from "@/lib/local-store";
 import { getAdminKey } from "@/lib/session";
+import { withRetry } from "@/lib/retry";
 
 async function getSiteByAdminKey(adminKey: string): Promise<{ id: string; name: string } | null> {
   const adminHash = hashKey(adminKey);
-  
-  // Check if database is available before querying
-  const canUseDb = await isDbAvailable();
-  
-  if (canUseDb) {
-    // Try database first - use allSettled to never throw
-    const [dbResult] = await Promise.allSettled([
-      db
-        .select({ id: sites.id, name: sites.name })
-        .from(sites)
-        .where(eq(sites.adminKey, adminHash))
-        .limit(1)
-    ]);
-    
-    if (dbResult.status === "fulfilled" && dbResult.value.length > 0) {
-      return dbResult.value[0];
-    }
-  }
 
-  // Fall back to local store
-  try {
-    const local = await getLocalSiteByAdminHash(adminHash);
-    if (local) {
-      return { id: local.id, name: local.name };
-    }
-  } catch {
-    // Local store also failed
-  }
-
-  return null;
+  return withRetry(async () => {
+    const [site] = await db
+      .select({ id: sites.id, name: sites.name })
+      .from(sites)
+      .where(eq(sites.adminKey, adminHash))
+      .limit(1);
+    return site || null;
+  });
 }
 
 export default async function ProtectedDashboardLayout({
@@ -60,27 +40,28 @@ export default async function ProtectedDashboardLayout({
 
   return (
     <div className="flex min-h-screen flex-col">
-      <header className="sticky top-0 z-40 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-        <div className="mx-auto flex h-14 w-full max-w-7xl items-center justify-between px-6">
+      <header className="sticky top-4 z-40 mx-auto max-w-7xl px-6">
+        <nav className="flex h-14 items-center justify-between rounded-2xl bg-background/80 backdrop-blur-xl border border-border/50 px-6 shadow-sm">
           <div className="flex items-center gap-4">
             <Link href="/dashboard" className="flex items-center gap-2">
-              <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-primary/10">
-                <Zap className="h-3.5 w-3.5 text-primary" />
-              </div>
+              <Logo size={24} />
               <span className="text-sm font-semibold tracking-tight">Prooflyst</span>
             </Link>
-            <span className="text-sm text-muted-foreground">/</span>
+            <span className="text-muted-foreground">/</span>
             <Link
               href={`/dashboard/sites/${site.id}/settings`}
-              className="text-sm text-muted-foreground hover:text-foreground"
+              className="text-sm text-muted-foreground hover:text-foreground transition-colors"
             >
               {site.name}
             </Link>
           </div>
-          <LogoutButton />
-        </div>
+          <div className="flex items-center gap-2">
+            <ThemeToggle />
+            <LogoutButton />
+          </div>
+        </nav>
       </header>
-      <main className="mx-auto w-full max-w-7xl flex-1 px-6 py-8">{children}</main>
+      <main className="mx-auto w-full max-w-7xl flex-1 px-6 py-8 pt-10">{children}</main>
     </div>
   );
 }

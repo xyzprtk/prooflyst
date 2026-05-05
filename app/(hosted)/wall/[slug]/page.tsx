@@ -3,25 +3,23 @@ import { db } from "@/lib/db";
 import { sites, testimonials } from "@/lib/db/schema";
 import { eq, and, desc } from "drizzle-orm";
 import { notFound } from "next/navigation";
-import { getLocalSiteBySlug, getLocalTestimonialsBySiteId } from "@/lib/local-store";
+import { withRetry } from "@/lib/retry";
+import { TestimonialWall } from "@/components/hosted/testimonial-wall";
 
 async function getSiteBySlug(slug: string) {
-  try {
+  return withRetry(async () => {
     const [site] = await db
       .select()
       .from(sites)
       .where(eq(sites.slug, slug))
       .limit(1);
-    if (site) return site;
-  } catch {
-    // Database unavailable, fallback to local store
-  }
-  return getLocalSiteBySlug(slug);
+    return site;
+  });
 }
 
 async function getApprovedTestimonials(siteId: string) {
-  try {
-    const results = await db
+  return withRetry(async () => {
+    return db
       .select({
         id: testimonials.id,
         author: testimonials.author,
@@ -37,16 +35,8 @@ async function getApprovedTestimonials(siteId: string) {
         )
       )
       .orderBy(desc(testimonials.createdAt))
-      .limit(50);
-    return results.map((t) => ({
-      ...t,
-      createdAt: t.createdAt.toISOString(),
-    }));
-  } catch {
-    // Database unavailable, fallback to local store
-    const localTestimonials = await getLocalTestimonialsBySiteId(siteId, "approved");
-    return localTestimonials.slice(0, 50);
-  }
+      .limit(13);
+  });
 }
 
 export async function generateMetadata({
@@ -59,11 +49,14 @@ export async function generateMetadata({
 
   if (!site) return { title: "Not Found" };
 
+  const heading =
+    site.branding?.heading ?? `What people say about ${site.name}`;
+
   return {
-    title: `What people say about ${site.name}`,
+    title: heading,
     description: `Read testimonials from ${site.name} customers`,
     openGraph: {
-      title: `What people say about ${site.name}`,
+      title: heading,
       description: `Read testimonials from ${site.name} customers`,
       type: "website",
     },
@@ -80,53 +73,31 @@ export default async function TestimonialWallPage({
 
   if (!site) notFound();
 
-  const approved = await getApprovedTestimonials(site.id);
+  const rows = await getApprovedTestimonials(site.id);
+  const hasMore = rows.length > 12;
+  const approved = hasMore ? rows.slice(0, 12) : rows;
+
+  const nextCursor = hasMore
+    ? Buffer.from(approved[approved.length - 1].createdAt.toISOString()).toString("base64url")
+    : null;
+
+  const initialTestimonials = approved.map((t) => ({
+    id: t.id,
+    author: t.author,
+    content: t.content,
+    rating: t.rating,
+    created_at: t.createdAt.toISOString(),
+  }));
 
   return (
-    <div className="mx-auto min-h-screen w-full max-w-4xl px-6 py-12">
-      <div className="flex flex-col gap-8">
-        <div className="flex flex-col gap-2 text-center">
-          <h1 className="text-3xl font-semibold tracking-tight">
-            What people say about {site.name}
-          </h1>
-          <p className="text-muted-foreground">
-            {approved.length} testimonial{approved.length !== 1 ? "s" : ""}
-          </p>
-        </div>
-
-        {approved.length === 0 ? (
-          <p className="py-12 text-center text-muted-foreground">
-            No testimonials yet.
-          </p>
-        ) : (
-          <div className="grid gap-4 sm:grid-cols-2">
-            {approved.map((t) => (
-              <div key={t.id} className="rounded-lg border bg-card p-6">
-                <p className="text-card-foreground">&ldquo;{t.content}&rdquo;</p>
-                <div className="mt-4 flex items-center gap-2">
-                  <span className="text-sm font-medium">{t.author}</span>
-                  {t.rating && (
-                    <span className="text-xs text-muted-foreground">
-                      {"★".repeat(t.rating)}
-                      {"☆".repeat(5 - t.rating)}
-                    </span>
-                  )}
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
-
-        <footer className="text-center text-xs text-muted-foreground">
-          Powered by{" "}
-          <a
-            href={process.env.NEXT_PUBLIC_APP_URL}
-            className="underline underline-offset-4 hover:text-foreground"
-          >
-            Prooflyst
-          </a>
-        </footer>
-      </div>
-    </div>
+    <TestimonialWall
+      siteName={site.name}
+      siteId={site.id}
+      slug={slug}
+      branding={site.branding}
+      initialTestimonials={initialTestimonials}
+      nextCursor={nextCursor}
+      initialCount={approved.length}
+    />
   );
 }

@@ -18,6 +18,12 @@ export const sites = sqliteTable("sites", {
     thankYou?: string;
     accentColor?: string;
     wallLayout?: "grid" | "list";
+    wallColumns?: 2 | 3 | 4;
+    wallCardStyle?: "default" | "minimal" | "bordered";
+    wallShowRating?: boolean;
+    wallShowDate?: boolean;
+    wallShowAvatar?: boolean;
+    wallTheme?: "light" | "dark" | "auto";
   }>(),
   createdAt: integer("created_at", { mode: "timestamp" })
     .$defaultFn(() => new Date())

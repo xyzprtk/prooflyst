@@ -3,21 +3,20 @@ import { db } from "@/lib/db";
 import { sites } from "@/lib/db/schema";
 import { eq } from "drizzle-orm";
 import { notFound } from "next/navigation";
+import { withRetry } from "@/lib/retry";
 import { TestimonialForm } from "@/components/hosted/testimonial-form";
-import { getLocalSiteBySlug } from "@/lib/local-store";
+import { FormHeader } from "@/components/hosted/form-header";
+import { WallFooter } from "@/components/hosted/wall-footer";
 
 async function getSiteBySlug(slug: string) {
-  try {
+  return withRetry(async () => {
     const [site] = await db
       .select()
       .from(sites)
       .where(eq(sites.slug, slug))
       .limit(1);
-    if (site) return site;
-  } catch {
-    // Database unavailable, fallback to local store
-  }
-  return getLocalSiteBySlug(slug);
+    return site;
+  });
 }
 
 export async function generateMetadata({
@@ -49,18 +48,18 @@ export default async function HostedFormPage({
   if (!site) notFound();
 
   const heading = site.branding?.heading ?? "Share your experience";
-  const accentColor = site.branding?.accentColor ?? "#6366f1";
+  const accentColor = site.branding?.accentColor;
 
   return (
-    <div className="mx-auto flex min-h-screen w-full max-w-lg flex-col justify-center px-6 py-12">
-      <div className="flex flex-col gap-6">
-        <div className="flex flex-col gap-2">
-          <h1 className="text-2xl font-semibold tracking-tight">{heading}</h1>
-          <p className="text-muted-foreground">
-            We&apos;d love to hear what you think about {site.name}.
-          </p>
-        </div>
+    <div className="min-h-screen flex flex-col">
+      <FormHeader
+        siteName={site.name}
+        heading={heading}
+        slug={slug}
+        accentColor={accentColor}
+      />
 
+      <div className="flex-1 mx-auto w-full max-w-lg px-6 py-8">
         <TestimonialForm
           siteId={site.id}
           publicKey={site.publicKey}
@@ -68,17 +67,9 @@ export default async function HostedFormPage({
           accentColor={accentColor}
           thankYouMessage={site.branding?.thankYou ?? "Thanks for your testimonial!"}
         />
-
-        <footer className="text-center text-xs text-muted-foreground">
-          Collect testimonials for your product →{" "}
-          <a
-            href={process.env.NEXT_PUBLIC_APP_URL}
-            className="underline underline-offset-4 hover:text-foreground"
-          >
-            Prooflyst
-          </a>
-        </footer>
       </div>
+
+      <WallFooter />
     </div>
   );
 }
