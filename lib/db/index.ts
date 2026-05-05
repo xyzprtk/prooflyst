@@ -25,6 +25,7 @@ function createTursoClient() {
 
 const client = createTursoClient();
 export const db = drizzle({ client, schema });
+export { client };
 
 // Track if DB tables exist
 let dbTablesExist: boolean | null = null;
