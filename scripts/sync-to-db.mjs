@@ -1,15 +1,15 @@
 #!/usr/bin/env node
 
 /**
- * Sync local store data to Neon PostgreSQL database
- * 
+ * Sync local store data to Turso SQLite database
+ *
  * Usage: pnpm sync
  */
 
 import { readFile } from "node:fs/promises";
 import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
-import { neon } from "@neondatabase/serverless";
+import { createClient } from "@libsql/client";
 
 function loadEnv() {
   const envPath = existsSync(".env.local")
@@ -40,12 +40,15 @@ function loadEnv() {
 
 loadEnv();
 
-if (!process.env.DATABASE_URL) {
-  console.error("❌ DATABASE_URL environment variable is required");
+if (!process.env.TURSO_DATABASE_URL) {
+  console.error("❌ TURSO_DATABASE_URL environment variable is required");
   process.exit(1);
 }
 
-const sql = neon(process.env.DATABASE_URL);
+const client = createClient({
+  url: process.env.TURSO_DATABASE_URL,
+  authToken: process.env.TURSO_AUTH_TOKEN,
+});
 
 // Retry helper with exponential backoff
 async function retry(operation, label, maxRetries = 3) {
@@ -65,13 +68,17 @@ async function retry(operation, label, maxRetries = 3) {
 
 const LOCAL_STORE_PATH = join(process.cwd(), ".data", "local-store.json");
 
-async function main() {
-  console.log("🔄 Starting sync from local store to database...\n");
+function toUnixTimestamp(isoString) {
+  return Math.floor(new Date(isoString).getTime() / 1000);
+}
 
-  // Warm up the database connection (Neon databases can be cold)
+async function main() {
+  console.log("🔄 Starting sync from local store to Turso database...\n");
+
+  // Warm up the database connection
   console.log("🔥 Warming up database connection...");
   try {
-    await sql`SELECT 1`;
+    await client.execute("SELECT 1");
     console.log("✅ Database connection ready\n");
   } catch {
     console.log("⚠️  Database warm-up failed, proceeding anyway...\n");
@@ -94,27 +101,39 @@ async function main() {
 
   if (localData.sites?.length > 0) {
     console.log("🏢 Syncing sites...");
-    
+
     for (const site of localData.sites) {
       try {
         const result = await retry(async () => {
           // Check if site already exists by ID or slug
-          const existing = await sql`
-            SELECT id, slug FROM sites WHERE id = ${site.id} OR slug = ${site.slug}
-          `;
+          const existing = await client.execute({
+            sql: "SELECT id, slug FROM sites WHERE id = ? OR slug = ?",
+            args: [site.id, site.slug],
+          });
 
-          if (existing.length > 0) {
+          if (existing.rows.length > 0) {
             sitesSkipped++;
-            const reason = existing[0].id === site.id ? 'id exists' : 'slug exists';
+            const reason = existing.rows[0].id === site.id ? "id exists" : "slug exists";
             console.log(`   ⏭️  Site ${site.slug} (${site.id}) skipped (${reason})`);
             return { skipped: true };
           }
 
           // Insert site
-          await sql`
-            INSERT INTO sites (id, slug, name, domain, admin_key, public_key, created_at)
-            VALUES (${site.id}, ${site.slug}, ${site.name}, ${site.domain}, ${site.adminKey}, ${site.publicKey}, ${new Date(site.createdAt)})
-          `;
+          await client.execute({
+            sql: `
+              INSERT INTO sites (id, slug, name, domain, admin_key, public_key, created_at)
+              VALUES (?, ?, ?, ?, ?, ?, ?)
+            `,
+            args: [
+              site.id,
+              site.slug,
+              site.name,
+              site.domain,
+              site.adminKey,
+              site.publicKey,
+              toUnixTimestamp(site.createdAt),
+            ],
+          });
           return { synced: true };
         }, `Site ${site.slug}`);
 
@@ -131,37 +150,51 @@ async function main() {
 
   if (localData.testimonials?.length > 0) {
     console.log("\n💬 Syncing testimonials...");
-    
+
     for (const testimonial of localData.testimonials) {
       try {
         const result = await retry(async () => {
           // Check if testimonial already exists
-          const existing = await sql`
-            SELECT id FROM testimonials WHERE id = ${testimonial.id}
-          `;
+          const existing = await client.execute({
+            sql: "SELECT id FROM testimonials WHERE id = ?",
+            args: [testimonial.id],
+          });
 
-          if (existing.length > 0) {
+          if (existing.rows.length > 0) {
             testimonialsSkipped++;
             console.log(`   ⏭️  Testimonial ${testimonial.id} already exists, skipping`);
             return { skipped: true };
           }
 
           // Check if the site exists
-          const siteExists = await sql`
-            SELECT id FROM sites WHERE id = ${testimonial.siteId}
-          `;
+          const siteExists = await client.execute({
+            sql: "SELECT id FROM sites WHERE id = ?",
+            args: [testimonial.siteId],
+          });
 
-          if (siteExists.length === 0) {
+          if (siteExists.rows.length === 0) {
             testimonialsSkipped++;
             console.log(`   ⚠️  Testimonial ${testimonial.id} references missing site, skipping`);
             return { skipped: true };
           }
 
           // Insert testimonial
-          await sql`
-            INSERT INTO testimonials (id, site_id, author, content, rating, status, created_at, updated_at)
-            VALUES (${testimonial.id}, ${testimonial.siteId}, ${testimonial.author}, ${testimonial.content}, ${testimonial.rating}, ${testimonial.status}, ${new Date(testimonial.createdAt)}, ${new Date(testimonial.updatedAt)})
-          `;
+          await client.execute({
+            sql: `
+              INSERT INTO testimonials (id, site_id, author, content, rating, status, created_at, updated_at)
+              VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+            `,
+            args: [
+              testimonial.id,
+              testimonial.siteId,
+              testimonial.author,
+              testimonial.content,
+              testimonial.rating,
+              testimonial.status,
+              toUnixTimestamp(testimonial.createdAt),
+              toUnixTimestamp(testimonial.updatedAt),
+            ],
+          });
           return { synced: true };
         }, `Testimonial ${testimonial.id}`);
 

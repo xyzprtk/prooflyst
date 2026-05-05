@@ -1,22 +1,30 @@
-import { neon } from "@neondatabase/serverless";
-import { drizzle } from "drizzle-orm/neon-http";
+import { drizzle } from "drizzle-orm/libsql";
+import { createClient } from "@libsql/client";
 import * as schema from "./schema";
 
-function normalizeDatabaseUrl(rawUrl?: string): string {
-  if (!rawUrl) {
-    throw new Error(
-      "DATABASE_URL is missing. Add it to .env.local in the project root."
+function createTursoClient() {
+  const url = process.env.TURSO_DATABASE_URL;
+  const authToken = process.env.TURSO_AUTH_TOKEN;
+
+  if (!url) {
+    console.warn(
+      "[Turso] TURSO_DATABASE_URL is not set. Using placeholder client.\n" +
+        "Database queries will fail until you add your Turso credentials to .env.local\n" +
+        "Get started at https://console.turso.tech"
     );
+    // Return a placeholder client so the module loads during build.
+    // isDbAvailable() will correctly report false, falling back to local-store.
+    return createClient({
+      url: "http://placeholder.turso.io",
+      authToken: "placeholder",
+    });
   }
-  const cleaned = rawUrl
-    .replace(/([?&])channel_binding=[^&]*/g, "$1")
-    .replace(/\?&/, "?")
-    .replace(/[?&]$/, "");
-  return cleaned;
+
+  return createClient({ url, authToken });
 }
 
-const sql = neon(normalizeDatabaseUrl(process.env.DATABASE_URL));
-export const db = drizzle({ client: sql, schema });
+const client = createTursoClient();
+export const db = drizzle({ client, schema });
 
 // Track if DB tables exist
 let dbTablesExist: boolean | null = null;
@@ -26,16 +34,16 @@ export async function isDbAvailable(): Promise<boolean> {
   if (dbTablesExist !== null) {
     return dbTablesExist;
   }
-  
+
   // Only check once at a time
   if (dbCheckPromise) {
     return dbCheckPromise;
   }
-  
+
   dbCheckPromise = (async () => {
     try {
       // Try to query the sites table to see if it exists
-      await sql`SELECT 1 FROM sites LIMIT 1`;
+      await client.execute("SELECT 1 FROM sites LIMIT 1");
       dbTablesExist = true;
       return true;
     } catch {
@@ -48,7 +56,7 @@ export async function isDbAvailable(): Promise<boolean> {
       dbCheckPromise = null;
     }
   })();
-  
+
   return dbCheckPromise;
 }
 

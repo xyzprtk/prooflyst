@@ -1,32 +1,30 @@
 import {
-  pgTable,
+  sqliteTable,
   text,
   integer,
-  timestamp,
   index,
-  jsonb,
-} from "drizzle-orm/pg-core";
+} from "drizzle-orm/sqlite-core";
 
-export const sites = pgTable("sites", {
+export const sites = sqliteTable("sites", {
   id: text("id").primaryKey(),
-  slug: text("slug").unique().notNull(),
+  slug: text("slug").notNull().unique(),
   name: text("name").notNull(),
   domain: text("domain").notNull(),
   adminKey: text("admin_key").notNull(),
   publicKey: text("public_key").notNull(),
   webhookUrl: text("webhook_url"),
-  branding: jsonb("branding").$type<{
+  branding: text("branding", { mode: "json" }).$type<{
     heading?: string;
     thankYou?: string;
     accentColor?: string;
     wallLayout?: "grid" | "list";
   }>(),
-  createdAt: timestamp("created_at", { withTimezone: true })
-    .defaultNow()
+  createdAt: integer("created_at", { mode: "timestamp" })
+    .$defaultFn(() => new Date())
     .notNull(),
 });
 
-export const testimonials = pgTable(
+export const testimonials = sqliteTable(
   "testimonials",
   {
     id: text("id").primaryKey(),
@@ -36,16 +34,16 @@ export const testimonials = pgTable(
     author: text("author").notNull(),
     content: text("content").notNull(),
     rating: integer("rating"),
-    status: text("status", {
-      enum: ["pending", "approved", "deleted"],
-    })
-      .default("pending")
+    status: text("status")
+      .$type<"pending" | "approved" | "deleted">()
+      .$defaultFn(() => "pending")
       .notNull(),
-    createdAt: timestamp("created_at", { withTimezone: true })
-      .defaultNow()
+    createdAt: integer("created_at", { mode: "timestamp" })
+      .$defaultFn(() => new Date())
       .notNull(),
-    updatedAt: timestamp("updated_at", { withTimezone: true })
-      .defaultNow()
+    updatedAt: integer("updated_at", { mode: "timestamp" })
+      .$defaultFn(() => new Date())
+      .$onUpdateFn(() => new Date())
       .notNull(),
   },
   (table) => [

@@ -1,6 +1,6 @@
 import { readFileSync, existsSync } from "node:fs";
 import { randomBytes, createHash } from "node:crypto";
-import { neon } from "@neondatabase/serverless";
+import { createClient } from "@libsql/client";
 
 function loadEnv() {
   const envPath = existsSync(".env.local")
@@ -39,11 +39,14 @@ function hashKey(key) {
 
 loadEnv();
 
-if (!process.env.DATABASE_URL) {
-  throw new Error("DATABASE_URL is missing. Add it to .env.");
+if (!process.env.TURSO_DATABASE_URL) {
+  throw new Error("TURSO_DATABASE_URL is missing. Add it to .env.");
 }
 
-const sql = neon(process.env.DATABASE_URL);
+const client = createClient({
+  url: process.env.TURSO_DATABASE_URL,
+  authToken: process.env.TURSO_AUTH_TOKEN,
+});
 
 const siteId = `site_${randomString(16)}`;
 const slug = `demo-${randomString(6).toLowerCase()}`;
@@ -51,30 +54,30 @@ const publicKey = `pl_pub_${randomString(32)}`;
 const adminKey = `pl_admin_${randomString(32)}`;
 const adminKeyHash = hashKey(adminKey);
 
-const now = new Date().toISOString();
+const now = Math.floor(Date.now() / 1000);
 
-await sql.query(
-  `
-  INSERT INTO sites (id, slug, name, domain, admin_key, public_key, created_at)
-  VALUES ($1, $2, $3, $4, $5, $6, $7)
+await client.execute({
+  sql: `
+    INSERT INTO sites (id, slug, name, domain, admin_key, public_key, created_at)
+    VALUES (?, ?, ?, ?, ?, ?, ?)
   `,
-  [siteId, slug, "Prooflyst Demo Site", "https://example.com", adminKeyHash, publicKey, now]
-);
+  args: [siteId, slug, "Prooflyst Demo Site", "https://example.com", adminKeyHash, publicKey, now],
+});
 
-const testimonials = [
+const seedTestimonials = [
   ["Asha", "Prooflyst made collecting testimonials effortless.", 5, "approved"],
   ["Rahul", "I integrated it in 10 minutes. Super clean API.", 5, "approved"],
   ["Sana", "Love the hosted wall. Looks polished out of the box.", 4, "pending"],
 ];
 
-for (const [author, content, rating, status] of testimonials) {
-  await sql.query(
-    `
-    INSERT INTO testimonials (id, site_id, author, content, rating, status, created_at, updated_at)
-    VALUES ($1, $2, $3, $4, $5, $6, $7, $7)
+for (const [author, content, rating, status] of seedTestimonials) {
+  await client.execute({
+    sql: `
+      INSERT INTO testimonials (id, site_id, author, content, rating, status, created_at, updated_at)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?)
     `,
-    [`t_${randomString(16)}`, siteId, author, content, rating, status, now]
-  );
+    args: [`t_${randomString(16)}`, siteId, author, content, rating, status, now, now],
+  });
 }
 
 console.log("\nSeed complete.\n");
