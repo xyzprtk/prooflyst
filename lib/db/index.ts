@@ -24,3 +24,4 @@ function createTursoClient() {
 
 const client = createTursoClient();
 export const db = drizzle({ client, schema });
+export { client };

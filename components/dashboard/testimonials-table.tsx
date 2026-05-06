@@ -2,9 +2,10 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
+import { motion, AnimatePresence } from "motion/react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Loader2 } from "lucide-react";
+import { EmptyState } from "./empty-state";
 
 interface Testimonial {
   id: string;
@@ -21,20 +22,21 @@ interface TestimonialsTableProps {
 
 type TabFilter = "all" | "pending" | "approved" | "deleted";
 
+const easeOut = [0.22, 1, 0.36, 1] as const;
+
 export function TestimonialsTable({ testimonials }: TestimonialsTableProps) {
   const [activeTab, setActiveTab] = useState<TabFilter>("all");
   const [isPending, startTransition] = useTransition();
-  const [optimisticUpdates, setOptimisticUpdates] = useState<Record<string, "pending" | "approved" | "deleted" | "loading">>({});
+  const [optimisticUpdates, setOptimisticUpdates] = useState<Record<string, "loading">>({});
   const router = useRouter();
 
-  const filteredTestimonials = testimonials.filter((t) => {
+  const filtered = testimonials.filter((t) => {
     if (activeTab === "all") return t.status !== "deleted";
     return t.status === activeTab;
   });
 
   const handleModerate = async (id: string, action: "approve" | "delete" | "restore") => {
     setOptimisticUpdates((prev) => ({ ...prev, [id]: "loading" }));
-
     startTransition(async () => {
       try {
         const res = await fetch(`/api/dashboard/testimonials/${id}/moderate`, {
@@ -42,31 +44,16 @@ export function TestimonialsTable({ testimonials }: TestimonialsTableProps) {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ action }),
         });
-
         if (res.ok) {
-          setOptimisticUpdates((prev) => {
-            const updates = { ...prev };
-            delete updates[id];
-            return updates;
-          });
+          setOptimisticUpdates((prev) => { const u = { ...prev }; delete u[id]; return u; });
           router.refresh();
         } else {
+          setOptimisticUpdates((prev) => { const u = { ...prev }; delete u[id]; return u; });
           const data = await res.json().catch(() => ({}));
-          console.error("Moderation failed:", data.error || data.message || "Unknown error");
-          setOptimisticUpdates((prev) => {
-            const updates = { ...prev };
-            delete updates[id];
-            return updates;
-          });
-          alert(data.error || data.message || "Failed to update testimonial");
+          alert(data.error || "Failed to update testimonial");
         }
-      } catch (error) {
-        console.error("Moderation error:", error);
-        setOptimisticUpdates((prev) => {
-          const updates = { ...prev };
-          delete updates[id];
-          return updates;
-        });
+      } catch {
+        setOptimisticUpdates((prev) => { const u = { ...prev }; delete u[id]; return u; });
         alert("Network error. Please try again.");
       }
     });
@@ -79,179 +66,190 @@ export function TestimonialsTable({ testimonials }: TestimonialsTableProps) {
     deleted: testimonials.filter((t) => t.status === "deleted").length,
   };
 
+  const tabs: { key: TabFilter; label: string; count: number }[] = [
+    { key: "all", label: "All", count: counts.all },
+    { key: "pending", label: "Pending", count: counts.pending },
+    { key: "approved", label: "Approved", count: counts.approved },
+    { key: "deleted", label: "Trash", count: counts.deleted },
+  ];
+
   return (
-    <Card>
-      <CardHeader className="pb-3">
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.5, ease: easeOut, delay: 0.3 }}
+      className="rounded-2xl border border-border/50 bg-card shadow-sm"
+    >
+      <div className="p-5 pb-3">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-          <CardTitle>Testimonials</CardTitle>
-          <div className="flex flex-wrap gap-1 rounded-lg bg-muted p-1">
-            <TabButton
-              active={activeTab === "all"}
-              onClick={() => setActiveTab("all")}
-              count={counts.all}
-            >
-              All
-            </TabButton>
-            <TabButton
-              active={activeTab === "pending"}
-              onClick={() => setActiveTab("pending")}
-              count={counts.pending}
-            >
-              Pending
-            </TabButton>
-            <TabButton
-              active={activeTab === "approved"}
-              onClick={() => setActiveTab("approved")}
-              count={counts.approved}
-            >
-              Approved
-            </TabButton>
-            <TabButton
-              active={activeTab === "deleted"}
-              onClick={() => setActiveTab("deleted")}
-              count={counts.deleted}
-              variant="deleted"
-            >
-              Trash
-            </TabButton>
+          <h2 className="text-lg font-semibold tracking-tight">Testimonials</h2>
+          <div className="flex flex-wrap gap-1 rounded-xl bg-muted p-1 relative">
+            {tabs.map((tab) => (
+              <button
+                key={tab.key}
+                onClick={() => setActiveTab(tab.key)}
+                className="relative rounded-lg px-3 py-1.5 text-sm font-medium transition-colors z-10"
+              >
+                {activeTab === tab.key && (
+                  <motion.div
+                    layoutId="activeTab"
+                    className="absolute inset-0 rounded-lg bg-background shadow-sm"
+                    transition={{ type: "spring", duration: 0.5, bounce: 0.15 }}
+                  />
+                )}
+                <span className={activeTab === tab.key ? "text-foreground relative" : "text-muted-foreground relative hover:text-foreground"}>
+                  {tab.label}{" "}
+                  <span className={activeTab === tab.key ? "text-muted-foreground" : "text-muted-foreground/60"}>
+                    ({tab.count})
+                  </span>
+                </span>
+              </button>
+            ))}
           </div>
         </div>
-      </CardHeader>
-      <CardContent>
-        {filteredTestimonials.length === 0 ? (
-          <p className="text-sm text-muted-foreground">
-            {activeTab === "all"
-              ? "No testimonials yet."
-              : activeTab === "pending"
-                ? "No pending testimonials."
-                : activeTab === "approved"
-                  ? "No approved testimonials."
-                  : "Trash is empty."}
-          </p>
-        ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b text-left text-muted-foreground">
-                  <th className="py-2 pr-3 font-medium">Author</th>
-                  <th className="py-2 pr-3 font-medium">Content</th>
-                  <th className="py-2 pr-3 font-medium">Rating</th>
-                  <th className="py-2 pr-3 font-medium">Status</th>
-                  <th className="py-2 pr-0 font-medium">Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {filteredTestimonials.map((row) => {
-                  const isLoading = optimisticUpdates[row.id] === "loading";
-                  return (
-                    <tr key={row.id} className="border-b align-top">
-                      <td className="py-3 pr-3 font-medium">{row.author}</td>
-                      <td className="max-w-md py-3 pr-3 text-muted-foreground">
-                        {row.content.length > 100 ? `${row.content.slice(0, 100)}...` : row.content}
-                      </td>
-                      <td className="py-3 pr-3">
-                        {row.rating ? "★".repeat(row.rating) + "☆".repeat(5 - row.rating) : "-"}
-                      </td>
-                      <td className="py-3 pr-3">
-                        <span
-                          className={`rounded px-2 py-1 text-xs capitalize ${
-                            row.status === "approved"
-                              ? "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400"
-                              : row.status === "pending"
-                                ? "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400"
-                                : "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400"
-                          }`}
+      </div>
+
+      <div className="px-5 pb-5">
+        <AnimatePresence mode="wait">
+          {filtered.length === 0 ? (
+            <motion.div
+              key="empty"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+            >
+              <EmptyState
+                title={
+                  activeTab === "all"
+                    ? "No testimonials yet"
+                    : activeTab === "pending"
+                      ? "No pending testimonials"
+                      : activeTab === "approved"
+                        ? "No approved testimonials"
+                        : "Trash is empty"
+                }
+                description="Testimonials will appear here once submitted."
+              />
+            </motion.div>
+          ) : (
+            <motion.div
+              key="list"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="overflow-x-auto"
+            >
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b text-left text-muted-foreground">
+                    <th className="py-2 pr-3 font-medium">Author</th>
+                    <th className="py-2 pr-3 font-medium">Content</th>
+                    <th className="py-2 pr-3 font-medium">Rating</th>
+                    <th className="py-2 pr-3 font-medium">Status</th>
+                    <th className="py-2 pr-0 font-medium">Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <AnimatePresence>
+                    {filtered.map((row) => {
+                      const isLoading = optimisticUpdates[row.id] === "loading";
+                      return (
+                        <motion.tr
+                          key={row.id}
+                          initial={{ opacity: 0, y: 8 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          exit={{ opacity: 0, height: 0 }}
+                          transition={{ duration: 0.25 }}
+                          className="border-b align-top"
                         >
-                          {row.status}
-                        </span>
-                      </td>
-                      <td className="py-3 pr-0">
-                        <div className="flex flex-wrap items-center gap-2">
-                          {row.status === "pending" && (
-                            <>
-                              <Button
-                                size="sm"
-                                onClick={() => handleModerate(row.id, "approve")}
-                                disabled={isLoading || isPending}
-                              >
-                                {isLoading && <Loader2 className="mr-1 h-3 w-3 animate-spin" />}
-                                Approve
-                              </Button>
-                              <Button
-                                size="sm"
-                                variant="destructive"
-                                onClick={() => handleModerate(row.id, "delete")}
-                                disabled={isLoading || isPending}
-                              >
-                                {isLoading && <Loader2 className="mr-1 h-3 w-3 animate-spin" />}
-                                Delete
-                              </Button>
-                            </>
-                          )}
-                          {row.status === "approved" && (
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              onClick={() => handleModerate(row.id, "delete")}
-                              disabled={isLoading || isPending}
-                            >
-                              {isLoading && <Loader2 className="mr-1 h-3 w-3 animate-spin" />}
-                              Delete
-                            </Button>
-                          )}
-                          {row.status === "deleted" && (
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              onClick={() => handleModerate(row.id, "restore")}
-                              disabled={isLoading || isPending}
-                            >
-                              {isLoading && <Loader2 className="mr-1 h-3 w-3 animate-spin" />}
-                              Restore
-                            </Button>
-                          )}
-                        </div>
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
-        )}
-      </CardContent>
-    </Card>
+                          <td className="py-3 pr-3 font-medium">{row.author}</td>
+                          <td className="max-w-md py-3 pr-3 text-muted-foreground">
+                            {row.content.length > 100 ? `${row.content.slice(0, 100)}...` : row.content}
+                          </td>
+                          <td className="py-3 pr-3">
+                            {row.rating ? "★".repeat(row.rating) + "☆".repeat(5 - row.rating) : "—"}
+                          </td>
+                          <td className="py-3 pr-3">
+                            <StatusBadge status={row.status} />
+                          </td>
+                          <td className="py-3 pr-0">
+                            <div className="flex flex-wrap items-center gap-2">
+                              {row.status === "pending" && (
+                                <>
+                                  <ActionButton onClick={() => handleModerate(row.id, "approve")} loading={isLoading} variant="primary">
+                                    Approve
+                                  </ActionButton>
+                                  <ActionButton onClick={() => handleModerate(row.id, "delete")} loading={isLoading} variant="destructive">
+                                    Delete
+                                  </ActionButton>
+                                </>
+                              )}
+                              {row.status === "approved" && (
+                                <ActionButton onClick={() => handleModerate(row.id, "delete")} loading={isLoading} variant="outline">
+                                  Delete
+                                </ActionButton>
+                              )}
+                              {row.status === "deleted" && (
+                                <ActionButton onClick={() => handleModerate(row.id, "restore")} loading={isLoading} variant="outline">
+                                  Restore
+                                </ActionButton>
+                              )}
+                            </div>
+                          </td>
+                        </motion.tr>
+                      );
+                    })}
+                  </AnimatePresence>
+                </tbody>
+              </table>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
+    </motion.div>
   );
 }
 
-function TabButton({
-  active,
-  onClick,
-  count,
+function StatusBadge({ status }: { status: string }) {
+  const styles = {
+    approved: "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400",
+    pending: "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400",
+    deleted: "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400",
+  };
+  return (
+    <span className={`rounded-full px-2.5 py-1 text-xs capitalize font-medium ${styles[status as keyof typeof styles]}`}>
+      {status}
+    </span>
+  );
+}
+
+function ActionButton({
   children,
+  onClick,
+  loading,
   variant,
 }: {
-  active: boolean;
-  onClick: () => void;
-  count: number;
   children: React.ReactNode;
-  variant?: "deleted";
+  onClick: () => void;
+  loading: boolean;
+  variant: "primary" | "destructive" | "outline";
 }) {
+  const variantClasses = {
+    primary: "bg-primary text-primary-foreground hover:bg-primary/90",
+    destructive: "bg-destructive text-destructive-foreground hover:bg-destructive/90",
+    outline: "border border-input bg-background hover:bg-accent hover:text-accent-foreground",
+  };
+
   return (
-    <button
+    <motion.button
       onClick={onClick}
-      className={`rounded-md px-3 py-1 text-sm font-medium transition-colors ${
-        active
-          ? "bg-background text-foreground shadow-sm"
-          : variant === "deleted"
-            ? "text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300"
-            : "text-muted-foreground hover:text-foreground"
-      }`}
+      disabled={loading}
+      whileHover={{ scale: 1.02 }}
+      whileTap={{ scale: 0.97 }}
+      className={`inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium transition-colors disabled:opacity-50 ${variantClasses[variant]}`}
     >
-      {children}{" "}
-      <span className={`ml-1 ${active ? "text-muted-foreground" : ""} ${variant === "deleted" && !active ? "text-red-500" : ""}`}>
-        ({count})
-      </span>
-    </button>
+      {loading && <Loader2 className="h-3 w-3 animate-spin" />}
+      {children}
+    </motion.button>
   );
 }

@@ -12,13 +12,8 @@ import { withRetry } from "@/lib/retry";
 
 async function getSiteByAdminKey(adminKey: string): Promise<{ id: string; name: string } | null> {
   const adminHash = hashKey(adminKey);
-
   return withRetry(async () => {
-    const [site] = await db
-      .select({ id: sites.id, name: sites.name })
-      .from(sites)
-      .where(eq(sites.adminKey, adminHash))
-      .limit(1);
+    const [site] = await db.select({ id: sites.id, name: sites.name }).from(sites).where(eq(sites.adminKey, adminHash)).limit(1);
     return site || null;
   });
 }
@@ -40,10 +35,10 @@ export default async function ProtectedDashboardLayout({
 
   return (
     <div className="flex min-h-screen flex-col">
-      <header className="sticky top-4 z-40 mx-auto max-w-7xl px-6">
-        <nav className="flex h-14 items-center justify-between rounded-2xl bg-background/80 backdrop-blur-xl border border-border/50 px-6 shadow-sm">
+      <header className="sticky top-4 z-40 mx-auto w-full max-w-7xl px-6">
+        <nav className="flex h-14 items-center justify-between rounded-2xl bg-background/80 backdrop-blur-xl border border-border/50 px-6 shadow-sm transition-all duration-300">
           <div className="flex items-center gap-4">
-            <Link href="/dashboard" className="flex items-center gap-2">
+            <Link href="/dashboard" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
               <Logo size={24} />
               <span className="text-sm font-semibold tracking-tight">Prooflyst</span>
             </Link>
