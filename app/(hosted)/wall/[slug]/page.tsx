@@ -35,7 +35,7 @@ async function getApprovedTestimonials(siteId: string) {
         )
       )
       .orderBy(desc(testimonials.createdAt))
-      .limit(13);
+      .limit(25);
   });
 }
 
@@ -74,8 +74,8 @@ export default async function TestimonialWallPage({
   if (!site) notFound();
 
   const rows = await getApprovedTestimonials(site.id);
-  const hasMore = rows.length > 12;
-  const approved = hasMore ? rows.slice(0, 12) : rows;
+  const hasMore = rows.length > 24;
+  const approved = hasMore ? rows.slice(0, 24) : rows;
 
   const nextCursor = hasMore
     ? Buffer.from(approved[approved.length - 1].createdAt.toISOString()).toString("base64url")

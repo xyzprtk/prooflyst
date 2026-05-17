@@ -47,7 +47,7 @@ interface TestimonialWallProps {
   initialCount: number;
 }
 
-const PAGE_SIZE = 12;
+const PAGE_SIZE = 24;
 
 const fetcher = (url: string) => fetch(url).then((r) => r.json());
 

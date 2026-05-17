@@ -54,7 +54,7 @@ const publicKey = `pl_pub_${randomString(32)}`;
 const adminKey = `pl_admin_${randomString(32)}`;
 const adminKeyHash = hashKey(adminKey);
 
-const now = Math.floor(Date.now() / 1000);
+const now = Date.now();
 
 await client.execute({
   sql: `

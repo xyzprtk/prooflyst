@@ -8,6 +8,7 @@
     "start": "next start",
     "lint": "eslint",
     "seed": "node scripts/seed.mjs",
+    "seed:dummy": "npx tsx scripts/seed-dummy-testimonials.ts",
     "sync": "node scripts/sync-to-db.mjs",
     "db:push": "drizzle-kit push",
     "db:generate": "drizzle-kit generate",
