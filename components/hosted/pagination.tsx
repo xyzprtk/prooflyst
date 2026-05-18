@@ -70,7 +70,6 @@ function PageButton({
       aria-label={`Page ${page}`}
       aria-current={isActive ? "page" : undefined}
     >
-      {page}
       {isActive && (
         <motion.div
           layoutId="activePageIndicator"
