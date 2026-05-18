@@ -25,7 +25,7 @@ export const sites = sqliteTable("sites", {
     wallShowAvatar?: boolean;
     wallTheme?: "light" | "dark" | "auto";
   }>(),
-  createdAt: integer("created_at", { mode: "timestamp" })
+  createdAt: integer("created_at", { mode: "timestamp_ms" })
     .$defaultFn(() => new Date())
     .notNull(),
 });
@@ -44,10 +44,10 @@ export const testimonials = sqliteTable(
       .$type<"pending" | "approved" | "deleted">()
       .$defaultFn(() => "pending")
       .notNull(),
-    createdAt: integer("created_at", { mode: "timestamp" })
+    createdAt: integer("created_at", { mode: "timestamp_ms" })
       .$defaultFn(() => new Date())
       .notNull(),
-    updatedAt: integer("updated_at", { mode: "timestamp" })
+    updatedAt: integer("updated_at", { mode: "timestamp_ms" })
       .$defaultFn(() => new Date())
       .$onUpdateFn(() => new Date())
       .notNull(),
