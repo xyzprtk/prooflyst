@@ -4,7 +4,7 @@ import { testimonials } from "@/lib/db/schema";
 import { publicListSchema } from "@/lib/validations";
 import { apiError } from "@/lib/errors";
 import { withRetry } from "@/lib/retry";
-import { eq, and, desc, asc, lt, gt } from "drizzle-orm";
+import { eq, and, desc, asc, lt, gt, sql, count } from "drizzle-orm";
 
 export async function GET(
   request: NextRequest,
@@ -17,6 +17,8 @@ export async function GET(
     limit: searchParams.get("limit") ?? undefined,
     cursor: searchParams.get("cursor") ?? undefined,
     sort: searchParams.get("sort") ?? undefined,
+    page: searchParams.get("page") ?? undefined,
+    pageSize: searchParams.get("pageSize") ?? undefined,
   });
 
   if (!parsed.success) {
@@ -25,23 +27,76 @@ export async function GET(
     });
   }
 
-  const { limit, cursor, sort } = parsed.data;
+  const { limit, cursor, sort, page, pageSize } = parsed.data;
 
   const conditions = [
     eq(testimonials.siteId, siteId),
     eq(testimonials.status, "approved"),
   ];
 
+  const orderBy =
+    sort === "oldest"
+      ? asc(testimonials.createdAt)
+      : desc(testimonials.createdAt);
+
+  // Page-based pagination
+  if (page && pageSize) {
+    const offset = (page - 1) * pageSize;
+
+    const [totalResult, rows] = await withRetry(async () => {
+      const total = await db
+        .select({ count: count() })
+        .from(testimonials)
+        .where(and(...conditions));
+
+      const items = await db
+        .select({
+          id: testimonials.id,
+          author: testimonials.author,
+          content: testimonials.content,
+          rating: testimonials.rating,
+          createdAt: testimonials.createdAt,
+        })
+        .from(testimonials)
+        .where(and(...conditions))
+        .orderBy(orderBy)
+        .limit(pageSize)
+        .offset(offset);
+
+      return [total, items];
+    });
+
+    const total = Number(totalResult[0]?.count ?? 0);
+    const totalPages = Math.ceil(total / pageSize);
+
+    return NextResponse.json(
+      {
+        testimonials: rows.map((t) => ({
+          id: t.id,
+          author: t.author,
+          content: t.content,
+          rating: t.rating,
+          created_at: t.createdAt,
+        })),
+        page,
+        page_size: pageSize,
+        total,
+        total_pages: totalPages,
+      },
+      {
+        headers: {
+          "Cache-Control": "public, s-maxage=60, stale-while-revalidate=300",
+        },
+      }
+    );
+  }
+
+  // Cursor-based pagination (fallback)
   if (cursor) {
     const decoded = Buffer.from(cursor, "base64url").toString();
     const orderOp = sort === "oldest" ? gt : lt;
     conditions.push(orderOp(testimonials.createdAt, new Date(decoded)));
   }
-
-  const orderBy =
-    sort === "oldest"
-      ? asc(testimonials.createdAt)
-      : desc(testimonials.createdAt);
 
   const rows = await withRetry(async () => {
     return db

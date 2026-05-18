@@ -1,15 +1,16 @@
 "use client";
 
 import { useState, useCallback, useEffect } from "react";
-import useSWRInfinite from "swr/infinite";
+import { useSearchParams, useRouter } from "next/navigation";
+import { motion, AnimatePresence } from "motion/react";
 import { MasonryGrid } from "./masonry-grid";
 import { TestimonialCard } from "./testimonial-card";
-import { InfiniteScrollTrigger } from "./infinite-scroll-trigger";
+import { Pagination } from "./pagination";
 import { WallHeader } from "./wall-header";
 import { WallFooter } from "./wall-footer";
 import { cn } from "@/lib/utils";
 import { useTheme } from "next-themes";
-import { Quote } from "lucide-react";
+import { Quote, Loader2 } from "lucide-react";
 
 interface TestimonialItem {
   id: string;
@@ -17,12 +18,6 @@ interface TestimonialItem {
   content: string;
   rating: number | null;
   created_at: string;
-}
-
-interface ApiResponse {
-  testimonials: TestimonialItem[];
-  next_cursor: string | null;
-  has_more: boolean;
 }
 
 interface BrandingConfig {
@@ -43,13 +38,50 @@ interface TestimonialWallProps {
   slug: string;
   branding: BrandingConfig | null;
   initialTestimonials: TestimonialItem[];
-  nextCursor: string | null;
-  initialCount: number;
+  initialPage: number;
+  totalPages: number;
+  totalCount: number;
 }
 
-const PAGE_SIZE = 24;
+const PAGE_SIZE = 20;
 
-const fetcher = (url: string) => fetch(url).then((r) => r.json());
+const gridVariants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.04,
+      delayChildren: 0.05,
+    },
+  },
+  exit: {
+    opacity: 0,
+    transition: {
+      staggerChildren: 0.02,
+      staggerDirection: -1,
+      duration: 0.15,
+    },
+  },
+};
+
+const cardVariants = {
+  hidden: { opacity: 0, y: 16, scale: 0.97 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    scale: 1,
+    transition: {
+      duration: 0.4,
+      ease: [0.25, 0.46, 0.45, 0.94] as const,
+    },
+  },
+  exit: {
+    opacity: 0,
+    y: -8,
+    scale: 0.97,
+    transition: { duration: 0.2 },
+  },
+};
 
 export function TestimonialWall({
   siteName,
@@ -57,8 +89,9 @@ export function TestimonialWall({
   slug,
   branding,
   initialTestimonials,
-  nextCursor: initialNextCursor,
-  initialCount,
+  initialPage,
+  totalPages,
+  totalCount,
 }: TestimonialWallProps) {
   const columns = branding?.wallColumns ?? 3;
   const cardStyle = branding?.wallCardStyle ?? "default";
@@ -67,6 +100,9 @@ export function TestimonialWall({
   const showDate = branding?.wallShowDate ?? false;
   const showAvatar = branding?.wallShowAvatar ?? true;
   const wallTheme = branding?.wallTheme ?? "auto";
+
+  const router = useRouter();
+  const searchParams = useSearchParams();
 
   const { setTheme } = useTheme();
 
@@ -78,46 +114,70 @@ export function TestimonialWall({
     }
   }, [wallTheme, setTheme]);
 
-  const [retryCount, setRetryCount] = useState(0);
+  const urlPage = parseInt(searchParams.get("p") ?? "1", 10) || 1;
+  const [testimonials, setTestimonials] = useState<TestimonialItem[]>(initialTestimonials);
+  const [currentPage, setCurrentPage] = useState(initialPage);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  const getKey = useCallback(
-    (pageIndex: number, previousPageData: ApiResponse | null) => {
-      if (pageIndex === 0) return null;
-      if (previousPageData && !previousPageData.has_more) return null;
+  // Sync with URL changes (e.g., browser back/forward)
+  useEffect(() => {
+    if (urlPage !== currentPage) {
+      loadPage(urlPage);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [urlPage]);
 
-      const cursor = previousPageData?.next_cursor ?? initialNextCursor;
-      if (!cursor) return null;
+  const loadPage = useCallback(
+    async (page: number) => {
+      if (page === currentPage && testimonials.length > 0) return;
 
-      return `/api/v1/public/testimonials/${siteId}?limit=${PAGE_SIZE}&sort=newest&cursor=${cursor}`;
+      setIsLoading(true);
+      setError(null);
+
+      try {
+        const res = await fetch(
+          `/api/v1/public/testimonials/${siteId}?page=${page}&pageSize=${PAGE_SIZE}&sort=newest`
+        );
+        if (!res.ok) throw new Error("Failed to load testimonials");
+
+        const data = await res.json();
+        setTestimonials(data.testimonials);
+        setCurrentPage(page);
+      } catch (err) {
+        setError(err instanceof Error ? err.message : "Something went wrong");
+      } finally {
+        setIsLoading(false);
+      }
     },
-    [siteId, initialNextCursor]
+    [currentPage, siteId, testimonials.length]
   );
 
-  const { data, size, setSize, error, isValidating } = useSWRInfinite<
-    ApiResponse
-  >(getKey, fetcher, {
-    revalidateFirstPage: false,
-    revalidateOnFocus: false,
-    revalidateOnReconnect: false,
-  });
+  const handlePageChange = useCallback(
+    (page: number) => {
+      if (page < 1 || page > totalPages || page === currentPage) return;
 
-  const allTestimonials = [
-    ...initialTestimonials,
-    ...(data?.flatMap((page) => page.testimonials) ?? []),
-  ];
+      const params = new URLSearchParams(searchParams.toString());
+      if (page === 1) {
+        params.delete("p");
+      } else {
+        params.set("p", String(page));
+      }
 
-  const lastPage = data?.[data.length - 1];
-  const hasMore = lastPage ? lastPage.has_more : initialNextCursor !== null;
+      const newUrl = `/wall/${slug}${params.toString() ? `?${params.toString()}` : ""}`;
+      router.push(newUrl, { scroll: false });
 
-  const handleLoadMore = useCallback(() => {
-    setSize(size + 1);
-  }, [size, setSize]);
+      // Scroll to top of grid smoothly
+      const gridTop = document.getElementById("testimonial-grid");
+      if (gridTop) {
+        const y = gridTop.getBoundingClientRect().top + window.scrollY - 120;
+        window.scrollTo({ top: y, behavior: "smooth" });
+      }
+    },
+    [currentPage, router, searchParams, slug, totalPages]
+  );
 
-  const handleRetry = useCallback(() => {
-    setRetryCount((c) => c + 1);
-  }, []);
-
-  if (allTestimonials.length === 0) {
+  if (totalCount === 0) {
     return (
       <div className="min-h-screen flex flex-col">
         <WallHeader
@@ -171,53 +231,89 @@ export function TestimonialWall({
       <WallHeader
         siteName={siteName}
         heading={branding?.heading}
-        count={initialCount}
+        count={totalCount}
         slug={slug}
         accentColor={accentColor}
       />
 
-      <div className="flex-1 mx-auto w-full max-w-6xl px-6 pb-16">
-        <MasonryGrid columns={columns}>
-          {allTestimonials.map((t) => (
-            <TestimonialCard
-              key={t.id}
-              id={t.id}
-              author={t.author}
-              content={t.content}
-              rating={t.rating}
-              createdAt={t.created_at ? new Date(t.created_at) : null}
-              cardStyle={cardStyle}
-              showRating={showRating}
-              showDate={showDate}
-              showAvatar={showAvatar}
-              accentColor={accentColor}
-            />
-          ))}
-        </MasonryGrid>
+      <div className="flex-1 mx-auto w-full max-w-6xl px-6 pb-8">
+        <div id="testimonial-grid" className="min-h-[400px]">
+          <AnimatePresence mode="wait">
+            {isLoading ? (
+              <motion.div
+                key="loader"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                className="flex items-center justify-center py-24"
+              >
+                <Loader2
+                  className="h-8 w-8 animate-spin"
+                  style={accentColor ? { color: accentColor } : undefined}
+                />
+              </motion.div>
+            ) : error ? (
+              <motion.div
+                key="error"
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0 }}
+                className="flex flex-col items-center gap-3 py-24 text-center"
+              >
+                <p className="text-sm text-muted-foreground">
+                  Failed to load testimonials.
+                </p>
+                <button
+                  onClick={() => loadPage(currentPage)}
+                  className={cn(
+                    "text-sm font-medium underline underline-offset-4 transition-colors hover:text-foreground",
+                    !accentColor && "text-primary"
+                  )}
+                  style={accentColor ? { color: accentColor } : undefined}
+                >
+                  Try again
+                </button>
+              </motion.div>
+            ) : (
+              <motion.div
+                key={`page-${currentPage}`}
+                variants={gridVariants}
+                initial="hidden"
+                animate="visible"
+                exit="exit"
+              >
+                <MasonryGrid columns={columns}>
+                  {testimonials.map((t) => (
+                    <motion.div
+                      key={t.id}
+                      variants={cardVariants}
+                      layout
+                    >
+                      <TestimonialCard
+                        id={t.id}
+                        author={t.author}
+                        content={t.content}
+                        rating={t.rating}
+                        createdAt={t.created_at ? new Date(t.created_at) : null}
+                        cardStyle={cardStyle}
+                        showRating={showRating}
+                        showDate={showDate}
+                        showAvatar={showAvatar}
+                        accentColor={accentColor}
+                      />
+                    </motion.div>
+                  ))}
+                </MasonryGrid>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
 
-        {error && (
-          <div className="flex flex-col items-center gap-3 py-8 text-center">
-            <p className="text-sm text-muted-foreground">
-              Failed to load more testimonials.
-            </p>
-            <button
-              onClick={handleRetry}
-              className={cn(
-                "text-sm font-medium underline underline-offset-4 transition-colors hover:text-foreground",
-                !accentColor && "text-primary"
-              )}
-              {...(accentColor ? { style: { color: accentColor } } : {})}
-            >
-              Try again
-            </button>
-          </div>
-        )}
-
-        <InfiniteScrollTrigger
-          hasMore={hasMore}
-          isLoading={isValidating}
-          onLoadMore={handleLoadMore}
-          columns={columns}
+        <Pagination
+          currentPage={currentPage}
+          totalPages={totalPages}
+          onPageChange={handlePageChange}
+          accentColor={accentColor}
         />
       </div>
 
