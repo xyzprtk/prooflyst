@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-import { useMotionValue, useTransform, animate } from "motion/react";
+import { useMotionValue, useTransform, animate, useReducedMotion } from "motion/react";
 
 interface CountUpProps {
   value: number;
@@ -16,17 +16,18 @@ export function CountUp({
   format = (n) => Math.round(n).toString(),
   className,
 }: CountUpProps) {
+  const prefersReduced = useReducedMotion();
   const motionValue = useMotionValue(0);
   const rounded = useTransform(motionValue, (v) => format(v));
   const ref = useRef<HTMLSpanElement>(null);
 
   useEffect(() => {
     const controls = animate(motionValue, value, {
-      duration,
+      duration: prefersReduced ? 0 : duration,
       ease: [0.22, 1, 0.36, 1],
     });
     return controls.stop;
-  }, [value, duration, motionValue]);
+  }, [value, duration, motionValue, prefersReduced]);
 
   useEffect(() => {
     const unsub = rounded.on("change", (v) => {
