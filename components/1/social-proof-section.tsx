@@ -3,14 +3,17 @@ import Link from "next/link";
 
 const testimonials = [
   {
+    id: "testimonial-1",
     quote: "This space is reserved for our very first user. Will it be you?",
     author: "The Prooflyst Team",
   },
   {
+    id: "testimonial-2",
     quote: "Imagine your best customer saying something amazing about your product right here.",
     author: "Future You",
   },
   {
+    id: "testimonial-3",
     quote: "We built this because collecting feedback shouldn't require a messy spreadsheet.",
     author: "The Prooflyst Team",
   },
