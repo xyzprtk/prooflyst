@@ -114,7 +114,7 @@ export function TypewriterText({
     >
       {text.split("").map((char, i) => (
         <motion.span
-          key={i}
+          key={`${char}-${i}`}
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: delay + i * speed / 1000, duration: 0.01 }}

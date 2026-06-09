@@ -40,12 +40,12 @@ export default function DocsPage() {
                 <h2 className="text-xl font-semibold tracking-tight mb-4 mt-12">Quick Start</h2>
                 <ol className="space-y-4 text-muted-foreground">
                   {[
-                    <>Create a site via the dashboard or the <InlineCode>/sites</InlineCode> API endpoint.</>,
-                    <>Use your <InlineCode>public_key</InlineCode> to collect testimonials from users.</>,
-                    <>Use your <InlineCode>admin_key</InlineCode> to moderate and manage testimonials.</>,
-                    <>Serve approved testimonials via the public API or embed widget.</>,
-                  ].map((text, i) => (
-                    <StaggerListItem key={i} index={i}>
+                    { id: "step-1", text: <>Create a site via the dashboard or the <InlineCode>/sites</InlineCode> API endpoint.</> },
+                    { id: "step-2", text: <>Use your <InlineCode>public_key</InlineCode> to collect testimonials from users.</> },
+                    { id: "step-3", text: <>Use your <InlineCode>admin_key</InlineCode> to moderate and manage testimonials.</> },
+                    { id: "step-4", text: <>Serve approved testimonials via the public API or embed widget.</> },
+                  ].map(({ id, text }, i) => (
+                    <StaggerListItem key={id} index={i}>
                       <span className="text-sm font-mono text-primary shrink-0">{i + 1}.</span>
                       <span className="group-hover:text-foreground transition-colors duration-200">
                         {text}

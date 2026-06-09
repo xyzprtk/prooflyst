@@ -6,18 +6,21 @@ import { StaggerContainer, StaggerItem } from "./motion-utils";
 
 const wallItems = [
   {
+    id: "placeholder-1",
     content: "This space is reserved for our very first user. Will it be you?",
     author: "You",
     role: "Your role",
     company: "Your company",
   },
   {
+    id: "placeholder-2",
     content: "Imagine your best customer saying something amazing about your product right here.",
     author: "Future You",
     role: "Founder",
     company: "Your startup",
   },
   {
+    id: "placeholder-3",
     content: "We built this because collecting feedback shouldn't require a messy spreadsheet.",
     author: "The Prooflyst Team",
     role: "Builders",
@@ -132,7 +135,7 @@ export function WallOfProofSectionV3() {
 
         <StaggerContainer className="grid md:grid-cols-3 gap-6" staggerDelay={0.12}>
           {wallItems.map((item, index) => (
-            <StaggerItem key={index}>
+            <StaggerItem key={item.id}>
               <TiltCard item={item} index={index} />
             </StaggerItem>
           ))}
