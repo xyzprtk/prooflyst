@@ -1,6 +1,5 @@
 "use client";
 
-import { motion } from "motion/react";
 import { FadeIn } from "./motion-utils";
 
 const spaghettiCode = `// The Old Way: Managing testimonials

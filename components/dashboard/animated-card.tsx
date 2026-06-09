@@ -1,6 +1,6 @@
 "use client";
 
-import { motion } from "motion/react";
+import { LazyMotion, m, domAnimation } from "motion/react";
 import { cn } from "@/lib/utils";
 
 interface AnimatedCardProps {
@@ -21,7 +21,8 @@ export function AnimatedCard({
   glass = false,
 }: AnimatedCardProps) {
   return (
-    <motion.div
+    <LazyMotion features={domAnimation}>
+    <m.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5, ease: easeOut, delay }}
@@ -37,6 +38,7 @@ export function AnimatedCard({
       )}
     >
       {children}
-    </motion.div>
+    </m.div>
+    </LazyMotion>
   );
 }

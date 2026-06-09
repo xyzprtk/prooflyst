@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { motion, AnimatePresence } from "motion/react";
+import { LazyMotion, m, AnimatePresence, domAnimation } from "motion/react";
 import { Button } from "@/components/ui/button";
 import { Copy, Check, ArrowRight, AlertCircle, Globe, Tag, Building2 } from "lucide-react";
 import Image from "next/image";
@@ -72,15 +72,16 @@ export default function SetupPage() {
   }
 
   return (
+    <LazyMotion features={domAnimation}>
     <div className="relative flex min-h-screen items-center justify-center overflow-hidden bg-background px-6 py-12">
       {/* Ambient background */}
       <div className="pointer-events-none absolute inset-0 overflow-hidden">
-        <motion.div
+        <m.div
           className="absolute -left-40 -top-40 h-[32rem] w-[32rem] rounded-full bg-primary/[0.03] blur-[120px]"
           animate={{ scale: [1, 1.1, 1], opacity: [0.5, 0.9, 0.5] }}
           transition={{ duration: 10, repeat: Infinity, ease: "easeInOut" }}
         />
-        <motion.div
+        <m.div
           className="absolute -right-40 -bottom-40 h-[32rem] w-[32rem] rounded-full bg-primary/[0.02] blur-[120px]"
           animate={{ scale: [1.1, 1, 1.1], opacity: [0.9, 0.5, 0.9] }}
           transition={{ duration: 10, repeat: Infinity, ease: "easeInOut", delay: 3 }}
@@ -95,7 +96,7 @@ export default function SetupPage() {
         }}
       />
 
-      <motion.div
+      <m.div
         initial={{ opacity: 0, y: 24, scale: 0.97 }}
         animate={{ opacity: 1, y: 0, scale: 1 }}
         transition={{ duration: 0.6, ease: easeOut }}
@@ -104,7 +105,7 @@ export default function SetupPage() {
         <div className="overflow-hidden rounded-2xl border border-border/50 bg-card shadow-xl shadow-black/[0.03]">
           <div className="px-10 pt-12 pb-10">
             {/* Logo */}
-            <motion.div
+            <m.div
               className="mx-auto mb-8 flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-primary/10 to-primary/[0.02] ring-1 ring-primary/10"
               animate={{ y: [0, -4, 0] }}
               transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
@@ -113,9 +114,9 @@ export default function SetupPage() {
                 <Image src="/logos/logo-dark.png" alt="Prooflyst" width={28} height={28} className="absolute inset-0 block dark:hidden" />
                 <Image src="/logos/logo-light.png" alt="Prooflyst" width={28} height={28} className="absolute inset-0 hidden dark:block" />
               </div>
-            </motion.div>
+            </m.div>
 
-            <motion.div
+            <m.div
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.1, duration: 0.4 }}
@@ -129,12 +130,12 @@ export default function SetupPage() {
                   ? "Save these keys — the admin key won't be shown again"
                   : "Set up your site to start collecting testimonials"}
               </p>
-            </motion.div>
+            </m.div>
 
             <div className="mt-10">
               <AnimatePresence mode="wait">
                 {!result ? (
-                  <motion.form
+                  <m.form
                     key="form"
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
@@ -144,7 +145,7 @@ export default function SetupPage() {
                     className="flex flex-col gap-6"
                   >
                     {/* Site Name */}
-                    <motion.div
+                    <m.div
                       initial={{ opacity: 0, y: 10 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: 0.2, duration: 0.4 }}
@@ -162,10 +163,10 @@ export default function SetupPage() {
                           required
                         />
                       </div>
-                    </motion.div>
+                    </m.div>
 
                     {/* Slug */}
-                    <motion.div
+                    <m.div
                       initial={{ opacity: 0, y: 10 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: 0.28, duration: 0.4 }}
@@ -184,10 +185,10 @@ export default function SetupPage() {
                         />
                       </div>
                       <p className="text-xs text-muted-foreground">Used in hosted URLs: /t/{slug || "..."}</p>
-                    </motion.div>
+                    </m.div>
 
                     {/* Domain */}
-                    <motion.div
+                    <m.div
                       initial={{ opacity: 0, y: 10 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: 0.36, duration: 0.4 }}
@@ -205,11 +206,11 @@ export default function SetupPage() {
                           required
                         />
                       </div>
-                    </motion.div>
+                    </m.div>
 
                     <AnimatePresence mode="wait">
                       {error && (
-                        <motion.div
+                        <m.div
                           key="error"
                           initial={{ opacity: 0, height: 0, y: -4 }}
                           animate={{ opacity: 1, height: "auto", y: 0 }}
@@ -221,11 +222,11 @@ export default function SetupPage() {
                             <AlertCircle className="h-3.5 w-3.5 shrink-0" />
                             {error}
                           </p>
-                        </motion.div>
+                        </m.div>
                       )}
                     </AnimatePresence>
 
-                    <motion.div
+                    <m.div
                       initial={{ opacity: 0, y: 10 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: 0.44, duration: 0.4 }}
@@ -237,22 +238,22 @@ export default function SetupPage() {
                       >
                         <AnimatePresence mode="wait" initial={false}>
                           {loading ? (
-                            <motion.span key="loading" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} transition={{ duration: 0.2 }} className="flex items-center gap-2">
+                            <m.span key="loading" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} transition={{ duration: 0.2 }} className="flex items-center gap-2">
                               <span className="h-4 w-4 animate-spin rounded-full border-2 border-primary-foreground/30 border-t-primary-foreground" />
                               Creating...
-                            </motion.span>
+                            </m.span>
                           ) : (
-                            <motion.span key="idle" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} transition={{ duration: 0.2 }} className="flex items-center gap-2">
+                            <m.span key="idle" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} transition={{ duration: 0.2 }} className="flex items-center gap-2">
                               Create Site
                               <ArrowRight className="h-4 w-4 transition-transform duration-200 group-hover/button:translate-x-0.5" />
-                            </motion.span>
+                            </m.span>
                           )}
                         </AnimatePresence>
                       </Button>
-                    </motion.div>
-                  </motion.form>
+                    </m.div>
+                  </m.form>
                 ) : (
-                  <motion.div
+                  <m.div
                     key="result"
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
@@ -262,7 +263,7 @@ export default function SetupPage() {
                     <KeyDisplay label="Admin Key" value={result.admin_key} copied={copied === "admin"} onCopy={() => copyToClipboard(result.admin_key, "admin")} />
                     <KeyDisplay label="Public Key" value={result.public_key} copied={copied === "public"} onCopy={() => copyToClipboard(result.public_key, "public")} />
 
-                    <motion.div
+                    <m.div
                       initial={{ opacity: 0, scale: 0.97 }}
                       animate={{ opacity: 1, scale: 1 }}
                       transition={{ delay: 0.2, duration: 0.3 }}
@@ -270,15 +271,15 @@ export default function SetupPage() {
                     >
                       <AlertCircle className="h-3.5 w-3.5 shrink-0 mt-0.5" />
                       Copy and save the admin key now. It will not be shown again.
-                    </motion.div>
+                    </m.div>
 
-                    <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3, duration: 0.3 }}>
+                    <m.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3, duration: 0.3 }}>
                       <Button onClick={handleContinue} className="w-full h-11 gap-2 rounded-xl text-sm font-medium transition-all duration-200 hover:shadow-lg hover:-translate-y-px active:translate-y-0">
                         Continue to Dashboard
                         <ArrowRight className="h-4 w-4" />
                       </Button>
-                    </motion.div>
-                  </motion.div>
+                    </m.div>
+                  </m.div>
                 )}
               </AnimatePresence>
             </div>
@@ -286,8 +287,9 @@ export default function SetupPage() {
 
           <div className="h-[2px] w-full bg-gradient-to-r from-transparent via-primary/15 to-transparent" />
         </div>
-      </motion.div>
+      </m.div>
     </div>
+    </LazyMotion>
   );
 }
 
@@ -300,13 +302,13 @@ function KeyDisplay({ label, value, copied, onCopy }: { label: string; value: st
         <Button variant="outline" size="icon" onClick={onCopy} className="h-11 w-11 rounded-xl shrink-0 transition-all duration-200 hover:bg-primary/5 hover:border-primary/20">
           <AnimatePresence mode="wait" initial={false}>
             {copied ? (
-              <motion.div key="check" initial={{ scale: 0.5, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.5, opacity: 0 }} transition={{ duration: 0.15 }}>
+              <m.div key="check" initial={{ scale: 0.5, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.5, opacity: 0 }} transition={{ duration: 0.15 }}>
                 <Check className="h-4 w-4 text-green-600" />
-              </motion.div>
+              </m.div>
             ) : (
-              <motion.div key="copy" initial={{ scale: 0.5, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.5, opacity: 0 }} transition={{ duration: 0.15 }}>
+              <m.div key="copy" initial={{ scale: 0.5, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.5, opacity: 0 }} transition={{ duration: 0.15 }}>
                 <Copy className="h-4 w-4" />
-              </motion.div>
+              </m.div>
             )}
           </AnimatePresence>
         </Button>

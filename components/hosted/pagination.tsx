@@ -1,7 +1,7 @@
 "use client";
 
 import { memo } from "react";
-import { motion } from "motion/react";
+import { LazyMotion, m, domAnimation } from "motion/react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -65,7 +65,8 @@ function PageButton({
   accentColor?: string;
 }) {
   return (
-    <motion.button
+    <LazyMotion features={domAnimation}>
+    <m.button
       onClick={onClick}
       whileHover={{ scale: 1.08 }}
       whileTap={{ scale: 0.92 }}
@@ -86,7 +87,7 @@ function PageButton({
       aria-current={isActive ? "page" : undefined}
     >
       {isActive && (
-        <motion.div
+        <m.div
           layoutId="activePageIndicator"
           className="absolute inset-0 rounded-xl"
           style={
@@ -98,7 +99,8 @@ function PageButton({
         />
       )}
       <span className="relative z-10">{page}</span>
-    </motion.button>
+    </m.button>
+    </LazyMotion>
   );
 }
 
@@ -124,7 +126,7 @@ function ArrowButton({
   const Icon = direction === "prev" ? ChevronLeft : ChevronRight;
 
   return (
-    <motion.button
+    <m.button
       onClick={onClick}
       disabled={disabled}
       whileHover={disabled ? undefined : { scale: 1.08 }}
@@ -138,7 +140,7 @@ function ArrowButton({
       aria-label={direction === "prev" ? "Previous page" : "Next page"}
     >
       <Icon className="h-4 w-4" />
-    </motion.button>
+    </m.button>
   );
 }
 

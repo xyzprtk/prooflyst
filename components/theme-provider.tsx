@@ -2,10 +2,11 @@
 
 import {
   createContext,
-  useContext,
+  use,
   useEffect,
   useState,
   useCallback,
+  useMemo,
 } from "react";
 
 type Theme = "light" | "dark" | "system";
@@ -25,7 +26,7 @@ const ThemeProviderContext = createContext<ThemeProviderState>({
 });
 
 export function useTheme() {
-  return useContext(ThemeProviderContext);
+  return use(ThemeProviderContext);
 }
 
 interface ThemeProviderProps {
@@ -112,15 +113,18 @@ export function ThemeProvider({
     return () => mediaQuery.removeEventListener("change", listener);
   }, [theme, attribute, enableSystem]);
 
+  const contextValue = useMemo(
+    () => ({
+      theme,
+      setTheme,
+      resolvedTheme,
+      themes: ["light", "dark", "system"] as Theme[],
+    }),
+    [theme, setTheme, resolvedTheme]
+  );
+
   return (
-    <ThemeProviderContext.Provider
-      value={{
-        theme,
-        setTheme,
-        resolvedTheme,
-        themes: ["light", "dark", "system"],
-      }}
-    >
+    <ThemeProviderContext.Provider value={contextValue}>
       {children}
     </ThemeProviderContext.Provider>
   );

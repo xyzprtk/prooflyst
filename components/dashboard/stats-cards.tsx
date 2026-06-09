@@ -1,6 +1,6 @@
 "use client";
 
-import { motion } from "motion/react";
+import { LazyMotion, m, domAnimation } from "motion/react";
 import { MessageSquare, Clock, CheckCircle, Trash2 } from "lucide-react";
 import { CountUp } from "./count-up";
 
@@ -22,9 +22,10 @@ export function StatsCards({ total, pending, approved, deleted }: StatsCardsProp
   ];
 
   return (
+    <LazyMotion features={domAnimation}>
     <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
       {cards.map((card, i) => (
-        <motion.div
+        <m.div
           key={card.label}
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -40,16 +41,17 @@ export function StatsCards({ total, pending, approved, deleted }: StatsCardsProp
               </p>
               <p className="text-xs text-muted-foreground">{card.desc}</p>
             </div>
-            <motion.div
+            <m.div
               className={`rounded-xl p-2.5 ${card.color}`}
               animate={card.highlight ? { scale: [1, 1.1, 1] } : {}}
               transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
             >
               <card.icon className="h-4 w-4" />
-            </motion.div>
+            </m.div>
           </div>
-        </motion.div>
+        </m.div>
       ))}
     </div>
+    </LazyMotion>
   );
 }

@@ -1,24 +1,24 @@
 "use client";
 
-import { motion } from "motion/react";
+import { m } from "motion/react";
 import { ReactNode } from "react";
 
 export function FadeIn({ children, delay = 0 }: { children: ReactNode; delay?: number }) {
   return (
-    <motion.div
+    <m.div
       initial={{ opacity: 0, y: 16 }}
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true, margin: "-60px" }}
       transition={{ duration: 0.4, delay, ease: [0.25, 0.1, 0.25, 1] }}
     >
       {children}
-    </motion.div>
+    </m.div>
   );
 }
 
 export function StaggerListItem({ children, index }: { children: ReactNode; index: number }) {
   return (
-    <motion.li
+    <m.li
       initial={{ opacity: 0, x: -8 }}
       whileInView={{ opacity: 1, x: 0 }}
       viewport={{ once: true }}
@@ -26,13 +26,13 @@ export function StaggerListItem({ children, index }: { children: ReactNode; inde
       className="flex gap-3 group"
     >
       {children}
-    </motion.li>
+    </m.li>
   );
 }
 
 export function TableRow({ children, index }: { children: ReactNode; index: number }) {
   return (
-    <motion.tr
+    <m.tr
       initial={{ opacity: 0, y: 4 }}
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true }}
@@ -40,19 +40,19 @@ export function TableRow({ children, index }: { children: ReactNode; index: numb
       className="border-b border-border/20 hover:bg-muted/30 transition-colors"
     >
       {children}
-    </motion.tr>
+    </m.tr>
   );
 }
 
 export function SlideUp({ children }: { children: ReactNode }) {
   return (
-    <motion.div
+    <m.div
       initial={{ opacity: 0, y: 20 }}
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true }}
       transition={{ duration: 0.5 }}
     >
       {children}
-    </motion.div>
+    </m.div>
   );
 }

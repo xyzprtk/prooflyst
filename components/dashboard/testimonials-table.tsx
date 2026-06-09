@@ -2,7 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { motion, AnimatePresence } from "motion/react";
+import { LazyMotion, m, AnimatePresence, domAnimation } from "motion/react";
 import { Button } from "@/components/ui/button";
 import { Loader2 } from "lucide-react";
 import { EmptyState } from "./empty-state";
@@ -23,6 +23,18 @@ interface TestimonialsTableProps {
 type TabFilter = "all" | "pending" | "approved" | "deleted";
 
 const easeOut = [0.22, 1, 0.36, 1] as const;
+
+const statusBadgeStyles = {
+  approved: "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400",
+  pending: "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400",
+  deleted: "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400",
+};
+
+const actionButtonVariantClasses = {
+  primary: "bg-primary text-primary-foreground hover:bg-primary/90",
+  destructive: "bg-destructive text-destructive-foreground hover:bg-destructive/90",
+  outline: "border border-input bg-background hover:bg-accent hover:text-accent-foreground",
+};
 
 export function TestimonialsTable({ testimonials }: TestimonialsTableProps) {
   const [activeTab, setActiveTab] = useState<TabFilter>("all");
@@ -74,12 +86,13 @@ export function TestimonialsTable({ testimonials }: TestimonialsTableProps) {
   ];
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.5, ease: easeOut, delay: 0.3 }}
-      className="rounded-2xl border border-border/50 bg-card shadow-sm"
-    >
+    <LazyMotion features={domAnimation}>
+      <m.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5, ease: easeOut, delay: 0.3 }}
+        className="rounded-2xl border border-border/50 bg-card shadow-sm"
+      >
       <div className="p-5 pb-3">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <h2 className="text-lg font-semibold tracking-tight">Testimonials</h2>
@@ -91,7 +104,7 @@ export function TestimonialsTable({ testimonials }: TestimonialsTableProps) {
                 className="relative rounded-lg px-3 py-1.5 text-sm font-medium transition-colors z-10"
               >
                 {activeTab === tab.key && (
-                  <motion.div
+                  <m.div
                     layoutId="activeTab"
                     className="absolute inset-0 rounded-lg bg-background shadow-sm"
                     transition={{ type: "spring", duration: 0.5, bounce: 0.15 }}
@@ -112,7 +125,7 @@ export function TestimonialsTable({ testimonials }: TestimonialsTableProps) {
       <div className="px-5 pb-5">
         <AnimatePresence mode="wait">
           {filtered.length === 0 ? (
-            <motion.div
+            <m.div
               key="empty"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
@@ -130,9 +143,9 @@ export function TestimonialsTable({ testimonials }: TestimonialsTableProps) {
                 }
                 description="Testimonials will appear here once submitted."
               />
-            </motion.div>
+            </m.div>
           ) : (
-            <motion.div
+            <m.div
               key="list"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
@@ -154,7 +167,7 @@ export function TestimonialsTable({ testimonials }: TestimonialsTableProps) {
                     {filtered.map((row) => {
                       const isLoading = optimisticUpdates[row.id] === "loading";
                       return (
-                        <motion.tr
+                        <m.tr
                           key={row.id}
                           initial={{ opacity: 0, y: 8 }}
                           animate={{ opacity: 1, y: 0 }}
@@ -196,28 +209,24 @@ export function TestimonialsTable({ testimonials }: TestimonialsTableProps) {
                               )}
                             </div>
                           </td>
-                        </motion.tr>
+                        </m.tr>
                       );
                     })}
                   </AnimatePresence>
                 </tbody>
               </table>
-            </motion.div>
+            </m.div>
           )}
         </AnimatePresence>
       </div>
-    </motion.div>
+    </m.div>
+    </LazyMotion>
   );
 }
 
 function StatusBadge({ status }: { status: string }) {
-  const styles = {
-    approved: "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400",
-    pending: "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400",
-    deleted: "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400",
-  };
   return (
-    <span className={`rounded-full px-2.5 py-1 text-xs capitalize font-medium ${styles[status as keyof typeof styles]}`}>
+    <span className={`rounded-full px-2.5 py-1 text-xs capitalize font-medium ${statusBadgeStyles[status as keyof typeof statusBadgeStyles]}`}>
       {status}
     </span>
   );
@@ -234,22 +243,16 @@ function ActionButton({
   loading: boolean;
   variant: "primary" | "destructive" | "outline";
 }) {
-  const variantClasses = {
-    primary: "bg-primary text-primary-foreground hover:bg-primary/90",
-    destructive: "bg-destructive text-destructive-foreground hover:bg-destructive/90",
-    outline: "border border-input bg-background hover:bg-accent hover:text-accent-foreground",
-  };
-
   return (
-    <motion.button
+    <m.button
       onClick={onClick}
       disabled={loading}
       whileHover={{ scale: 1.02 }}
       whileTap={{ scale: 0.97 }}
-      className={`inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium transition-colors disabled:opacity-50 ${variantClasses[variant]}`}
+      className={`inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium transition-colors disabled:opacity-50 ${actionButtonVariantClasses[variant]}`}
     >
       {loading && <Loader2 className="h-3 w-3 animate-spin" />}
       {children}
-    </motion.button>
+    </m.button>
   );
 }

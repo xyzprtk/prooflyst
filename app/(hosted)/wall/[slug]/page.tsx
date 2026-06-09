@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
 import { db } from "@/lib/db";
 import { sites, testimonials } from "@/lib/db/schema";
 import { eq, and, desc, count } from "drizzle-orm";
@@ -89,8 +90,7 @@ export default async function TestimonialWallPage({
   params: Promise<{ slug: string }>;
   searchParams: Promise<{ p?: string }>;
 }) {
-  const { slug } = await params;
-  const { p } = await searchParams;
+  const [{ slug }, { p }] = await Promise.all([params, searchParams]);
 
   const site = await getSiteBySlug(slug);
   if (!site) notFound();
@@ -112,15 +112,17 @@ export default async function TestimonialWallPage({
   }));
 
   return (
-    <TestimonialWall
-      siteName={site.name}
-      siteId={site.id}
-      slug={slug}
-      branding={site.branding}
-      initialTestimonials={initialTestimonials}
-      initialPage={currentPage}
-      totalPages={totalPages}
-      totalCount={totalCount}
-    />
+    <Suspense fallback={null}>
+      <TestimonialWall
+        siteName={site.name}
+        siteId={site.id}
+        slug={slug}
+        branding={site.branding}
+        initialTestimonials={initialTestimonials}
+        initialPage={currentPage}
+        totalPages={totalPages}
+        totalCount={totalCount}
+      />
+    </Suspense>
   );
 }

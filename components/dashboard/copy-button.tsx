@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { motion, AnimatePresence } from "motion/react";
+import { LazyMotion, m, AnimatePresence, domAnimation } from "motion/react";
 import { Copy, Check } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -25,7 +25,8 @@ export function CopyButton({ value, size = "sm", className }: CopyButtonProps) {
   const buttonSize = size === "sm" ? "h-7 w-7" : "h-9 w-9";
 
   return (
-    <motion.button
+    <LazyMotion features={domAnimation}>
+    <m.button
       onClick={handleCopy}
       whileTap={{ scale: 0.85 }}
       className={cn(
@@ -37,7 +38,7 @@ export function CopyButton({ value, size = "sm", className }: CopyButtonProps) {
     >
       <AnimatePresence mode="wait" initial={false}>
         {copied ? (
-          <motion.div
+          <m.div
             key="check"
             initial={{ scale: 0.5, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
@@ -45,9 +46,9 @@ export function CopyButton({ value, size = "sm", className }: CopyButtonProps) {
             transition={{ duration: 0.15 }}
           >
             <Check className={cn(iconSize, "text-green-600")} />
-          </motion.div>
+          </m.div>
         ) : (
-          <motion.div
+          <m.div
             key="copy"
             initial={{ scale: 0.5, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
@@ -55,9 +56,10 @@ export function CopyButton({ value, size = "sm", className }: CopyButtonProps) {
             transition={{ duration: 0.15 }}
           >
             <Copy className={iconSize} />
-          </motion.div>
+          </m.div>
         )}
       </AnimatePresence>
-    </motion.button>
+    </m.button>
+    </LazyMotion>
   );
 }

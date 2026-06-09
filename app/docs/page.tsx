@@ -1,5 +1,6 @@
 "use client";
 
+import { LazyMotion, domAnimation } from "motion/react";
 import { NavbarDocs } from "@/components/docs/navbar-docs";
 import { DocsSidebar } from "@/components/docs/sidebar";
 import { CodeBlock, InlineCode, Endpoint, ParameterTable } from "@/components/docs/code-block";
@@ -8,6 +9,7 @@ import { Footer } from "@/components/footer";
 
 export default function DocsPage() {
   return (
+    <LazyMotion features={domAnimation}>
     <main className="min-h-screen">
       <NavbarDocs />
 
@@ -624,5 +626,6 @@ export function SubmitTestimonial({ siteId, publicKey }: { siteId: string; publi
 
       <Footer />
     </main>
+    </LazyMotion>
   );
 }

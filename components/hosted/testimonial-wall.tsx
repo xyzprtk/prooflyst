@@ -2,7 +2,7 @@
 
 import { useState, useCallback, useEffect } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
-import { motion, AnimatePresence } from "motion/react";
+import { LazyMotion, m, AnimatePresence, domAnimation } from "motion/react";
 import { MasonryGrid } from "./masonry-grid";
 import { TestimonialCard } from "./testimonial-card";
 import { Pagination } from "./pagination";
@@ -179,6 +179,7 @@ export function TestimonialWall({
 
   if (totalCount === 0) {
     return (
+      <LazyMotion features={domAnimation}>
       <div className="min-h-screen flex flex-col">
         <WallHeader
           siteName={siteName}
@@ -223,6 +224,7 @@ export function TestimonialWall({
         </div>
         <WallFooter />
       </div>
+      </LazyMotion>
     );
   }
 
@@ -240,7 +242,7 @@ export function TestimonialWall({
         <div id="testimonial-grid" className="min-h-[400px]">
           <AnimatePresence mode="wait">
             {isLoading ? (
-              <motion.div
+              <m.div
                 key="loader"
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
@@ -251,9 +253,9 @@ export function TestimonialWall({
                   className="h-8 w-8 animate-spin"
                   style={accentColor ? { color: accentColor } : undefined}
                 />
-              </motion.div>
+              </m.div>
             ) : error ? (
-              <motion.div
+              <m.div
                 key="error"
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -273,9 +275,9 @@ export function TestimonialWall({
                 >
                   Try again
                 </button>
-              </motion.div>
+              </m.div>
             ) : (
-              <motion.div
+              <m.div
                 key={`page-${currentPage}`}
                 variants={gridVariants}
                 initial="hidden"
@@ -284,7 +286,7 @@ export function TestimonialWall({
               >
                 <MasonryGrid columns={columns}>
                   {testimonials.map((t) => (
-                    <motion.div
+                    <m.div
                       key={t.id}
                       variants={cardVariants}
                       layout
@@ -301,10 +303,10 @@ export function TestimonialWall({
                         showAvatar={showAvatar}
                         accentColor={accentColor}
                       />
-                    </motion.div>
+                    </m.div>
                   ))}
                 </MasonryGrid>
-              </motion.div>
+              </m.div>
             )}
           </AnimatePresence>
         </div>

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { motion } from "motion/react";
+import { LazyMotion, m, domAnimation } from "motion/react";
 import { ExternalLink } from "lucide-react";
 import { CopyButton } from "./copy-button";
 
@@ -21,7 +21,8 @@ const easeOut = [0.22, 1, 0.36, 1] as const;
 
 export function SiteOverview({ site, appUrl }: SiteOverviewProps) {
   return (
-    <motion.div
+    <LazyMotion features={domAnimation}>
+    <m.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5, ease: easeOut, delay: 0.2 }}
@@ -46,7 +47,8 @@ export function SiteOverview({ site, appUrl }: SiteOverviewProps) {
         <UrlField label="Hosted Form URL" url={`${appUrl}/t/${site.slug}`} />
         <UrlField label="Hosted Wall URL" url={`${appUrl}/wall/${site.slug}`} />
       </div>
-    </motion.div>
+    </m.div>
+    </LazyMotion>
   );
 }
 
@@ -78,7 +80,7 @@ function UrlField({ label, url }: { label: string; url: string }) {
       <div className="flex items-center gap-2">
         <code className="rounded-xl bg-muted/70 px-3 py-2 font-mono text-xs border border-border/40">{url}</code>
         <CopyButton value={url} />
-        <motion.a
+        <m.a
           href={url}
           target="_blank"
           rel="noreferrer"
@@ -87,7 +89,7 @@ function UrlField({ label, url }: { label: string; url: string }) {
           className="inline-flex h-8 w-8 items-center justify-center rounded-lg hover:bg-muted transition-colors"
         >
           <ExternalLink className="h-3.5 w-3.5" />
-        </motion.a>
+        </m.a>
       </div>
     </div>
   );

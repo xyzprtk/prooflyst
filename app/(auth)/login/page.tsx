@@ -2,7 +2,8 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { motion, AnimatePresence } from "motion/react";
+import Link from "next/link";
+import { LazyMotion, m, AnimatePresence, domAnimation } from "motion/react";
 import { Button } from "@/components/ui/button";
 import { KeyRound, ArrowRight, Sparkles, AlertCircle, Eye, EyeOff } from "lucide-react";
 import Image from "next/image";
@@ -49,15 +50,16 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="relative flex min-h-screen items-center justify-center overflow-hidden bg-background px-6">
+    <LazyMotion features={domAnimation}>
+      <div className="relative flex min-h-screen items-center justify-center overflow-hidden bg-background px-6">
       {/* Ambient background orbs */}
       <div className="pointer-events-none absolute inset-0 overflow-hidden">
-        <motion.div
+        <m.div
           className="absolute -left-40 -top-40 h-[32rem] w-[32rem] rounded-full bg-primary/[0.03] blur-[120px]"
           animate={{ scale: [1, 1.1, 1], opacity: [0.5, 0.9, 0.5] }}
           transition={{ duration: 10, repeat: Infinity, ease: "easeInOut" }}
         />
-        <motion.div
+        <m.div
           className="absolute -right-40 -bottom-40 h-[32rem] w-[32rem] rounded-full bg-primary/[0.02] blur-[120px]"
           animate={{ scale: [1.1, 1, 1.1], opacity: [0.9, 0.5, 0.9] }}
           transition={{ duration: 10, repeat: Infinity, ease: "easeInOut", delay: 3 }}
@@ -73,7 +75,7 @@ export default function LoginPage() {
         }}
       />
 
-      <motion.div
+      <m.div
         initial={{ opacity: 0, y: 24, scale: 0.97 }}
         animate={{ opacity: 1, y: 0, scale: 1 }}
         transition={{ duration: 0.6, ease: easeOut }}
@@ -82,7 +84,7 @@ export default function LoginPage() {
         <div className="overflow-hidden rounded-2xl border border-border/50 bg-card shadow-xl shadow-black/[0.03]">
           <div className="px-10 pt-12 pb-10">
             {/* Logo */}
-            <motion.div
+            <m.div
               className="mx-auto mb-8 flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-primary/10 to-primary/[0.02] ring-1 ring-primary/10"
               animate={{ y: [0, -4, 0] }}
               transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
@@ -91,9 +93,9 @@ export default function LoginPage() {
                 <Image src="/logos/logo-dark.png" alt="Prooflyst" width={28} height={28} className="absolute inset-0 block dark:hidden" />
                 <Image src="/logos/logo-light.png" alt="Prooflyst" width={28} height={28} className="absolute inset-0 hidden dark:block" />
               </div>
-            </motion.div>
+            </m.div>
 
-            <motion.div
+            <m.div
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.1, duration: 0.4 }}
@@ -103,17 +105,17 @@ export default function LoginPage() {
               <p className="mt-2 text-sm text-muted-foreground">
                 Enter your admin key to access the dashboard
               </p>
-            </motion.div>
+            </m.div>
 
             <form onSubmit={handleSubmit} className="mt-10 flex flex-col gap-6">
-              <motion.div
+              <m.div
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.2, duration: 0.4 }}
                 className="flex flex-col gap-2.5"
               >
                 <label htmlFor="admin-key" className="text-sm font-medium">Admin Key</label>
-                <motion.div
+                <m.div
                   className="relative"
                   animate={error ? { x: [0, -8, 8, -5, 5, 0] } : { x: 0 }}
                   transition={{ duration: 0.5 }}
@@ -143,7 +145,7 @@ export default function LoginPage() {
                   </button>
                   <AnimatePresence>
                     {focused && (
-                      <motion.div
+                      <m.div
                         initial={{ opacity: 0, scaleX: 0.6 }}
                         animate={{ opacity: 1, scaleX: 1 }}
                         exit={{ opacity: 0, scaleX: 0.6 }}
@@ -152,11 +154,11 @@ export default function LoginPage() {
                       />
                     )}
                   </AnimatePresence>
-                </motion.div>
+                </m.div>
 
                 <AnimatePresence mode="wait">
                   {error && (
-                    <motion.div
+                    <m.div
                       key="error"
                       initial={{ opacity: 0, height: 0, y: -4 }}
                       animate={{ opacity: 1, height: "auto", y: 0 }}
@@ -168,12 +170,12 @@ export default function LoginPage() {
                         <AlertCircle className="h-3.5 w-3.5 shrink-0" />
                         {error}
                       </p>
-                    </motion.div>
+                    </m.div>
                   )}
                 </AnimatePresence>
-              </motion.div>
+              </m.div>
 
-              <motion.div
+              <m.div
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.3, duration: 0.4 }}
@@ -185,7 +187,7 @@ export default function LoginPage() {
                 >
                   <AnimatePresence mode="wait" initial={false}>
                     {loading ? (
-                      <motion.span
+                      <m.span
                         key="loading"
                         initial={{ opacity: 0, y: 8 }}
                         animate={{ opacity: 1, y: 0 }}
@@ -195,9 +197,9 @@ export default function LoginPage() {
                       >
                         <span className="h-4 w-4 animate-spin rounded-full border-2 border-primary-foreground/30 border-t-primary-foreground" />
                         Verifying...
-                      </motion.span>
+                      </m.span>
                     ) : (
-                      <motion.span
+                      <m.span
                         key="idle"
                         initial={{ opacity: 0, y: 8 }}
                         animate={{ opacity: 1, y: 0 }}
@@ -207,30 +209,31 @@ export default function LoginPage() {
                       >
                         Sign In
                         <ArrowRight className="h-4 w-4 transition-transform duration-200 group-hover/button:translate-x-0.5" />
-                      </motion.span>
+                      </m.span>
                     )}
                   </AnimatePresence>
                 </Button>
-              </motion.div>
+              </m.div>
 
-              <motion.p
+              <m.p
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 transition={{ delay: 0.4 }}
                 className="text-center text-xs text-muted-foreground"
               >
                 Don&apos;t have a key?{" "}
-                <a href="/setup" className="inline-flex items-center gap-0.5 underline underline-offset-4 hover:text-foreground transition-colors duration-200">
+                <Link href="/setup" className="inline-flex items-center gap-0.5 underline underline-offset-4 hover:text-foreground transition-colors duration-200">
                   Create your first site
                   <Sparkles className="h-3 w-3" />
-                </a>
-              </motion.p>
+                </Link>
+              </m.p>
             </form>
           </div>
 
           <div className="h-[2px] w-full bg-gradient-to-r from-transparent via-primary/15 to-transparent" />
         </div>
-      </motion.div>
+      </m.div>
     </div>
+    </LazyMotion>
   );
 }

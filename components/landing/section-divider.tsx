@@ -1,12 +1,13 @@
 "use client";
 
-import { motion } from "motion/react";
+import { LazyMotion, m, domAnimation } from "motion/react";
 
 export function SectionDivider() {
   return (
+    <LazyMotion features={domAnimation}>
     <div className="py-6">
       <div className="mx-auto max-w-7xl px-6">
-        <motion.div
+        <m.div
           initial={{ opacity: 0, scaleX: 0 }}
           whileInView={{ opacity: 1, scaleX: 1 }}
           viewport={{ once: true }}
@@ -15,5 +16,6 @@ export function SectionDivider() {
         />
       </div>
     </div>
+    </LazyMotion>
   );
 }
