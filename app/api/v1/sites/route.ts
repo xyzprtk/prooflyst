@@ -11,12 +11,27 @@ import {
   hashKey,
 } from "@/lib/keys";
 import { withRetry } from "@/lib/retry";
+import { checkRateLimit, adminLimiter } from "@/lib/rate-limit";
 import { eq } from "drizzle-orm";
 
-export async function POST(request: Request) {
+async function checkAdminRateLimit(request: Request) {
   const auth = await authenticateAdmin(request);
   if (!auth.success) {
+    return { auth, limited: false, headers: {} };
+  }
+  const adminKey = request.headers.get("authorization")!.slice(7);
+  const adminHash = hashKey(adminKey);
+  const { limited, headers } = await checkRateLimit(adminLimiter, `admin:${adminHash}`);
+  return { auth, limited, headers };
+}
+
+export async function POST(request: Request) {
+  const { auth, limited, headers } = await checkAdminRateLimit(request);
+  if (!auth.success) {
     return apiError("UNAUTHORIZED", auth.error);
+  }
+  if (limited) {
+    return apiError("RATE_LIMITED", "Too many requests. Please try again later.", undefined, headers);
   }
 
   const body = await request.json().catch(() => null);
@@ -82,14 +97,17 @@ export async function POST(request: Request) {
         created_at: site.createdAt,
       },
     },
-    { status: 201 }
+    { status: 201, headers }
   );
 }
 
 export async function GET(request: Request) {
-  const auth = await authenticateAdmin(request);
+  const { auth, limited, headers } = await checkAdminRateLimit(request);
   if (!auth.success) {
     return apiError("UNAUTHORIZED", auth.error);
+  }
+  if (limited) {
+    return apiError("RATE_LIMITED", "Too many requests. Please try again later.", undefined, headers);
   }
 
   const adminKey = request.headers.get("authorization")!.slice(7);
@@ -109,14 +127,17 @@ export async function GET(request: Request) {
       .where(eq(sites.adminKey, adminHash));
   });
 
-  return NextResponse.json({
-    sites: siteList.map((s) => ({
-      id: s.id,
-      slug: s.slug,
-      name: s.name,
-      domain: s.domain,
-      public_key: s.publicKey,
-      created_at: s.createdAt,
-    })),
-  });
+  return NextResponse.json(
+    {
+      sites: siteList.map((s) => ({
+        id: s.id,
+        slug: s.slug,
+        name: s.name,
+        domain: s.domain,
+        public_key: s.publicKey,
+        created_at: s.createdAt,
+      })),
+    },
+    { headers }
+  );
 }

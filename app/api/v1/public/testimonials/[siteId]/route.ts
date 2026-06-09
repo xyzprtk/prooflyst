@@ -4,13 +4,20 @@ import { testimonials } from "@/lib/db/schema";
 import { publicListSchema } from "@/lib/validations";
 import { apiError } from "@/lib/errors";
 import { withRetry } from "@/lib/retry";
-import { eq, and, desc, asc, lt, gt, sql, count } from "drizzle-orm";
+import { checkRateLimit, publicReadLimiter, getClientIP } from "@/lib/rate-limit";
+import { eq, and, desc, asc, lt, gt, count } from "drizzle-orm";
 
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ siteId: string }> }
 ) {
   const { siteId } = await params;
+  const ip = getClientIP(request);
+  const { limited, headers } = await checkRateLimit(publicReadLimiter, `read:${siteId}:${ip}`);
+  if (limited) {
+    return apiError("RATE_LIMITED", "Too many requests. Please try again later.", undefined, headers);
+  }
+
   const searchParams = request.nextUrl.searchParams;
 
   const parsed = publicListSchema.safeParse({
@@ -85,6 +92,7 @@ export async function GET(
       },
       {
         headers: {
+          ...headers,
           "Cache-Control": "public, s-maxage=60, stale-while-revalidate=300",
         },
       }
@@ -135,6 +143,7 @@ export async function GET(
     },
     {
       headers: {
+        ...headers,
         "Cache-Control": "public, s-maxage=60, stale-while-revalidate=300",
       },
     }
