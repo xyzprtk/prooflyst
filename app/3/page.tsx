@@ -1,3 +1,11 @@
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Prooflyst — V3 Landing",
+  description:
+    "Alternate landing page for Prooflyst — social proof and testimonial management.",
+};
+
 import { NavbarV3 } from "@/components/3/navbar-v3";
 import { HeroSectionV3 } from "@/components/3/hero-section-v3";
 import { PainSectionV3 } from "@/components/3/pain-section-v3";

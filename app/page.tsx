@@ -1,3 +1,11 @@
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Prooflyst — Social Proof Platform",
+  description:
+    "Collect, manage, and display testimonials with a powerful API and beautiful embedded widgets.",
+};
+
 import { Navbar } from "@/components/landing/navbar";
 import { HeroSection } from "@/components/landing/hero";
 import { PainSection } from "@/components/landing/pain-section";
