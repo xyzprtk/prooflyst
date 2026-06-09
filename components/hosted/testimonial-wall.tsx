@@ -9,7 +9,7 @@ import { Pagination } from "./pagination";
 import { WallHeader } from "./wall-header";
 import { WallFooter } from "./wall-footer";
 import { cn } from "@/lib/utils";
-import { useTheme } from "next-themes";
+import { useTheme } from "@/components/theme-provider";
 import { Quote, Loader2 } from "lucide-react";
 
 interface TestimonialItem {

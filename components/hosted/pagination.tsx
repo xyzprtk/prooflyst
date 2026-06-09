@@ -12,27 +12,42 @@ interface PaginationProps {
   accentColor?: string;
 }
 
-function getPageNumbers(current: number, total: number): (number | "ellipsis")[] {
+interface PageItem {
+  id: string;
+  value: number | "ellipsis";
+}
+
+function getPageNumbers(current: number, total: number): PageItem[] {
+  let ellipsisCount = 0;
+
   if (total <= 7) {
-    return Array.from({ length: total }, (_, i) => i + 1);
+    return Array.from({ length: total }, (_, i) => ({
+      id: `page-${i + 1}`,
+      value: i + 1,
+    }));
   }
 
-  const pages: (number | "ellipsis")[] = [];
+  const pages: PageItem[] = [];
+
+  const push = (v: number | "ellipsis") => {
+    const id = v === "ellipsis" ? `ellipsis-${++ellipsisCount}` : `page-${v}`;
+    pages.push({ id, value: v });
+  };
 
   if (current <= 4) {
-    for (let i = 1; i <= 5; i++) pages.push(i);
-    pages.push("ellipsis");
-    pages.push(total);
+    for (let i = 1; i <= 5; i++) push(i);
+    push("ellipsis");
+    push(total);
   } else if (current >= total - 3) {
-    pages.push(1);
-    pages.push("ellipsis");
-    for (let i = total - 4; i <= total; i++) pages.push(i);
+    push(1);
+    push("ellipsis");
+    for (let i = total - 4; i <= total; i++) push(i);
   } else {
-    pages.push(1);
-    pages.push("ellipsis");
-    for (let i = current - 1; i <= current + 1; i++) pages.push(i);
-    pages.push("ellipsis");
-    pages.push(total);
+    push(1);
+    push("ellipsis");
+    for (let i = current - 1; i <= current + 1; i++) push(i);
+    push("ellipsis");
+    push(total);
   }
 
   return pages;
@@ -150,19 +165,21 @@ export const Pagination = memo(function Pagination({
       />
 
       <div className="flex items-center gap-1">
-        {pages.map((page, i) =>
-          page === "ellipsis" ? (
-            <Ellipsis key={`ellipsis-${i}`} />
-          ) : (
+        {pages.map((page) => {
+          if (page.value === "ellipsis") {
+            return <Ellipsis key={page.id} />;
+          }
+          const pageNumber = page.value;
+          return (
             <PageButton
-              key={page}
-              page={page}
-              isActive={page === currentPage}
-              onClick={() => onPageChange(page)}
+              key={page.id}
+              page={pageNumber}
+              isActive={pageNumber === currentPage}
+              onClick={() => onPageChange(pageNumber)}
               accentColor={accentColor}
             />
-          )
-        )}
+          );
+        })}
       </div>
 
       <ArrowButton
