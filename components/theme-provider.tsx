@@ -60,6 +60,15 @@ export function ThemeProvider({
     }
   }, []);
 
+  const resolvedTheme =
+    typeof window === "undefined"
+      ? "light"
+      : theme === "system" && enableSystem
+        ? window.matchMedia("(prefers-color-scheme: dark)").matches
+          ? "dark"
+          : "light"
+        : theme;
+
   useEffect(() => {
     const root = document.documentElement;
     const resolved =
@@ -82,7 +91,7 @@ export function ThemeProvider({
   }, [theme, attribute, enableSystem]);
 
   useEffect(() => {
-    if (!enableSystem) return;
+    if (!enableSystem || typeof window === "undefined") return;
 
     const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
     const listener = () => {
@@ -102,13 +111,6 @@ export function ThemeProvider({
     mediaQuery.addEventListener("change", listener);
     return () => mediaQuery.removeEventListener("change", listener);
   }, [theme, attribute, enableSystem]);
-
-  const resolvedTheme =
-    theme === "system" && enableSystem
-      ? window.matchMedia("(prefers-color-scheme: dark)").matches
-        ? "dark"
-        : "light"
-      : theme;
 
   return (
     <ThemeProviderContext.Provider
