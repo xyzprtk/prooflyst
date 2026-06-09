@@ -34,7 +34,8 @@ export function CodeBlock({ language, title, children }: CodeBlockProps) {
         </div>
 
         <button
-          onClick={handleCopy}
+                      type="button"
+                      onClick={handleCopy}
           className="flex items-center gap-1.5 rounded-md px-2 py-1 text-[11px] font-mono text-muted-foreground hover:text-foreground hover:bg-foreground/5 transition-colors"
           aria-label="Copy code"
         >
