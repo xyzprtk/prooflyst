@@ -25,12 +25,12 @@ export default async function ProtectedDashboardLayout({
 }) {
   const adminKey = await getAdminKey();
   if (!adminKey) {
-    redirect("/dashboard/login");
+    redirect("/login");
   }
 
   const site = await getSiteByAdminKey(adminKey);
   if (!site) {
-    redirect("/dashboard/login");
+    redirect("/login");
   }
 
   return (

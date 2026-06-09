@@ -15,7 +15,7 @@ export function FinalCTASectionV2() {
         <Button
           size="lg"
           className="rounded-full text-base px-8 h-11 mb-6"
-          render={<Link href="/dashboard/setup" />}
+          render={<Link href="/setup" />}
         >
           Start building your proof system
           <ArrowRight className="ml-2 h-4 w-4" />

@@ -602,7 +602,7 @@ export function SubmitTestimonial({ siteId, publicKey }: { siteId: string; publi
                 </p>
                 <div className="flex flex-col sm:flex-row gap-4 justify-center">
                   <a
-                    href="/dashboard/setup"
+                    href="/setup"
                     className="inline-flex items-center justify-center rounded-full px-8 h-11 text-sm font-medium bg-primary text-primary-foreground hover:bg-primary/90 transition-colors"
                   >
                     Get Started

@@ -49,7 +49,7 @@ export function SocialProofSection() {
         </div>
 
         <div className="text-center">
-          <Button size="lg" className="rounded-full text-base px-8 h-11" render={<Link href="/dashboard/setup" />}>
+          <Button size="lg" className="rounded-full text-base px-8 h-11" render={<Link href="/setup" />}>
             This could be yours
           </Button>
         </div>

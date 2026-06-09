@@ -18,7 +18,7 @@ export function HeroSectionV2() {
           <Button
             size="lg"
             className="rounded-full text-base px-8 h-11"
-            render={<Link href="/dashboard/setup" />}
+            render={<Link href="/setup" />}
           >
             Start Building
             <ArrowRight className="ml-2 h-4 w-4" />
@@ -27,7 +27,7 @@ export function HeroSectionV2() {
             size="lg"
             variant="outline"
             className="rounded-full text-base px-8 h-11 border-border/60 bg-transparent hover:bg-foreground/5"
-            render={<Link href="/dashboard/login" />}
+            render={<Link href="/login" />}
           >
             Open Dashboard
           </Button>

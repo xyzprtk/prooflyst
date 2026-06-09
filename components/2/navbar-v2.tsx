@@ -98,7 +98,7 @@ export function NavbarV2() {
             GitHub
           </Link>
           <Link
-            href="/dashboard/setup"
+            href="/setup"
             className={cn(
               "rounded-full px-6 py-2.5 text-sm font-medium transition-colors",
               "bg-white text-slate-900 hover:bg-white/90 dark:bg-slate-900 dark:text-white dark:hover:bg-slate-900/90"

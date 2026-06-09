@@ -220,7 +220,7 @@ export default function LoginPage() {
                 className="text-center text-xs text-muted-foreground"
               >
                 Don&apos;t have a key?{" "}
-                <a href="/dashboard/setup" className="inline-flex items-center gap-0.5 underline underline-offset-4 hover:text-foreground transition-colors duration-200">
+                <a href="/setup" className="inline-flex items-center gap-0.5 underline underline-offset-4 hover:text-foreground transition-colors duration-200">
                   Create your first site
                   <Sparkles className="h-3 w-3" />
                 </a>

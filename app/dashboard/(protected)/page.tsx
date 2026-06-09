@@ -12,7 +12,7 @@ import { TestimonialsTable } from "@/components/dashboard/testimonials-table";
 export default async function DashboardPage() {
   const adminKey = await getAdminKey();
   if (!adminKey) {
-    redirect("/dashboard/login");
+    redirect("/login");
   }
 
   const adminHash = hashKey(adminKey);
@@ -23,7 +23,7 @@ export default async function DashboardPage() {
   });
 
   if (!site) {
-    redirect("/dashboard/setup");
+    redirect("/setup");
   }
 
   const rows = await withRetry(async () => {

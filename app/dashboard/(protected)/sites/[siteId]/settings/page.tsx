@@ -18,7 +18,7 @@ export default async function SiteSettingsPage({
 
   const adminKey = await getAdminKey();
   if (!adminKey) {
-    redirect("/dashboard/login");
+    redirect("/login");
   }
 
   const adminHash = hashKey(adminKey);
