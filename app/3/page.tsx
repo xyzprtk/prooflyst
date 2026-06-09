@@ -6,6 +6,7 @@ export const metadata: Metadata = {
     "Alternate landing page for Prooflyst — social proof and testimonial management.",
 };
 
+import { LazyMotionProvider } from "@/components/lazy-motion-provider";
 import { NavbarV3 } from "@/components/3/navbar-v3";
 import { HeroSectionV3 } from "@/components/3/hero-section-v3";
 import { PainSectionV3 } from "@/components/3/pain-section-v3";
@@ -21,26 +22,28 @@ import { Footer } from "@/components/footer";
 
 export default function LandingPageV3() {
   return (
-    <main className="min-h-screen">
-      <NavbarV3 />
-      <HeroSectionV3 />
-      <SectionDivider />
-      <PainSectionV3 />
-      <SectionDivider />
-      <HowItWorksSectionV3 />
-      <SectionDivider />
-      <WallOfProofSectionV3 />
-      <SectionDivider />
-      <CodePreviewSectionV3 />
-      <SectionDivider />
-      <WhyProoflystSectionV3 />
-      <SectionDivider />
-      <PricingSectionV3 />
-      <SectionDivider />
-      <PhilosophySectionV3 />
-      <SectionDivider />
-      <FinalCTASectionV3 />
-      <Footer />
-    </main>
+    <LazyMotionProvider>
+      <main className="min-h-screen">
+        <NavbarV3 />
+        <HeroSectionV3 />
+        <SectionDivider />
+        <PainSectionV3 />
+        <SectionDivider />
+        <HowItWorksSectionV3 />
+        <SectionDivider />
+        <WallOfProofSectionV3 />
+        <SectionDivider />
+        <CodePreviewSectionV3 />
+        <SectionDivider />
+        <WhyProoflystSectionV3 />
+        <SectionDivider />
+        <PricingSectionV3 />
+        <SectionDivider />
+        <PhilosophySectionV3 />
+        <SectionDivider />
+        <FinalCTASectionV3 />
+        <Footer />
+      </main>
+    </LazyMotionProvider>
   );
 }

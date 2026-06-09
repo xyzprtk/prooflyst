@@ -6,6 +6,7 @@ export const metadata: Metadata = {
     "Collect, manage, and display testimonials with a powerful API and beautiful embedded widgets.",
 };
 
+import { LazyMotionProvider } from "@/components/lazy-motion-provider";
 import { Navbar } from "@/components/landing/navbar";
 import { HeroSection } from "@/components/landing/hero";
 import { PainSection } from "@/components/landing/pain-section";
@@ -21,26 +22,28 @@ import { Footer } from "@/components/footer";
 
 export default function LandingPage() {
   return (
-    <main className="min-h-screen">
-      <Navbar />
-      <HeroSection />
-      <SectionDivider />
-      <PainSection />
-      <SectionDivider />
-      <HowItWorksSection />
-      <SectionDivider />
-      <WallOfProofSection />
-      <SectionDivider />
-      <CodePreviewSection />
-      <SectionDivider />
-      <WhyProoflystSection />
-      <SectionDivider />
-      <PricingSection />
-      <SectionDivider />
-      <PhilosophySection />
-      <SectionDivider />
-      <FinalCTASection />
-      <Footer />
-    </main>
+    <LazyMotionProvider>
+      <main className="min-h-screen">
+        <Navbar />
+        <HeroSection />
+        <SectionDivider />
+        <PainSection />
+        <SectionDivider />
+        <HowItWorksSection />
+        <SectionDivider />
+        <WallOfProofSection />
+        <SectionDivider />
+        <CodePreviewSection />
+        <SectionDivider />
+        <WhyProoflystSection />
+        <SectionDivider />
+        <PricingSection />
+        <SectionDivider />
+        <PhilosophySection />
+        <SectionDivider />
+        <FinalCTASection />
+        <Footer />
+      </main>
+    </LazyMotionProvider>
   );
 }
