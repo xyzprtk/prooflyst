@@ -20,8 +20,8 @@ function useScrollState() {
 function LogoInverseInner() {
   return (
     <div className="relative h-5 w-5">
-      <Image src="/logos/logo-light.png" alt="Prooflyst" width={20} height={20} className="absolute inset-0 block dark:hidden" />
-      <Image src="/logos/logo-dark.png" alt="Prooflyst" width={20} height={20} className="absolute inset-0 hidden dark:block" />
+      <Image src="/logos/logo-light.png" alt="Prooflyst" fill className="absolute inset-0 block dark:hidden" sizes="20px" />
+      <Image src="/logos/logo-dark.png" alt="Prooflyst" fill className="absolute inset-0 hidden dark:block" sizes="20px" />
     </div>
   );
 }
