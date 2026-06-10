@@ -126,21 +126,23 @@ function ArrowButton({
   const Icon = direction === "prev" ? ChevronLeft : ChevronRight;
 
   return (
-    <m.button
-      onClick={onClick}
-      disabled={disabled}
-      whileHover={disabled ? undefined : { scale: 1.08 }}
-      whileTap={disabled ? undefined : { scale: 0.92 }}
-      className={cn(
-        "flex h-10 w-10 items-center justify-center rounded-xl transition-colors",
-        disabled
-          ? "text-muted-foreground/40 cursor-not-allowed"
-          : "text-muted-foreground hover:text-foreground hover:bg-muted"
-      )}
-      aria-label={direction === "prev" ? "Previous page" : "Next page"}
-    >
-      <Icon className="h-4 w-4" />
-    </m.button>
+    <LazyMotion features={domAnimation}>
+      <m.button
+        onClick={onClick}
+        disabled={disabled}
+        whileHover={disabled ? undefined : { scale: 1.08 }}
+        whileTap={disabled ? undefined : { scale: 0.92 }}
+        className={cn(
+          "flex h-10 w-10 items-center justify-center rounded-xl transition-colors",
+          disabled
+            ? "text-muted-foreground/40 cursor-not-allowed"
+            : "text-muted-foreground hover:text-foreground hover:bg-muted"
+        )}
+        aria-label={direction === "prev" ? "Previous page" : "Next page"}
+      >
+        <Icon className="h-4 w-4" />
+      </m.button>
+    </LazyMotion>
   );
 }
 

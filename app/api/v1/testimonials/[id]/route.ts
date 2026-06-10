@@ -1,24 +1,11 @@
 import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { testimonials } from "@/lib/db/schema";
-import { authenticateAdmin } from "@/lib/auth";
+import { checkAdminRateLimit } from "@/lib/admin-rate-limit";
 import { moderateTestimonialSchema } from "@/lib/validations";
 import { apiError } from "@/lib/errors";
-import { hashKey } from "@/lib/keys";
 import { withRetry } from "@/lib/retry";
-import { checkRateLimit, adminLimiter } from "@/lib/rate-limit";
 import { eq, and } from "drizzle-orm";
-
-async function checkAdminRateLimit(request: Request) {
-  const auth = await authenticateAdmin(request);
-  if (!auth.success) {
-    return { auth, limited: false, headers: {} };
-  }
-  const adminKey = request.headers.get("authorization")!.slice(7);
-  const adminHash = hashKey(adminKey);
-  const { limited, headers } = await checkRateLimit(adminLimiter, `admin:${adminHash}`);
-  return { auth, limited, headers };
-}
 
 export async function PATCH(
   request: Request,

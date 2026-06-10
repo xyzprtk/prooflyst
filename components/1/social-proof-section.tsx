@@ -33,9 +33,9 @@ export function SocialProofSection() {
         </div>
 
         <div className="grid md:grid-cols-3 gap-6 mb-12">
-          {testimonials.map((testimonial, index) => (
+          {testimonials.map((testimonial) => (
             <div
-              key={index}
+              key={testimonial.id}
               className="relative p-6 rounded-2xl border border-border bg-muted/20 hover:bg-muted/30 transition-colors"
             >
               <div className="text-4xl text-primary/20 absolute top-4 right-4 font-serif">

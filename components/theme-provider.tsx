@@ -2,7 +2,7 @@
 
 import {
   createContext,
-  use,
+  useContext,
   useEffect,
   useState,
   useCallback,
@@ -26,7 +26,7 @@ const ThemeProviderContext = createContext<ThemeProviderState>({
 });
 
 export function useTheme() {
-  return use(ThemeProviderContext);
+  return useContext(ThemeProviderContext);
 }
 
 interface ThemeProviderProps {
@@ -34,6 +34,15 @@ interface ThemeProviderProps {
   attribute?: "class" | `data-${string}`;
   defaultTheme?: Theme;
   enableSystem?: boolean;
+}
+
+function resolveTheme(theme: Theme, enableSystem: boolean): "light" | "dark" {
+  if (theme === "system" && enableSystem) {
+    return window.matchMedia("(prefers-color-scheme: dark)").matches
+      ? "dark"
+      : "light";
+  }
+  return theme === "dark" ? "dark" : "light";
 }
 
 export function ThemeProvider({
@@ -52,6 +61,8 @@ export function ThemeProvider({
     }
   });
 
+  const [resolvedTheme, setResolvedTheme] = useState<"light" | "dark">("light");
+
   const setTheme = useCallback((newTheme: Theme) => {
     setThemeState(newTheme);
     try {
@@ -61,23 +72,13 @@ export function ThemeProvider({
     }
   }, []);
 
-  const resolvedTheme =
-    typeof window === "undefined"
-      ? "light"
-      : theme === "system" && enableSystem
-        ? window.matchMedia("(prefers-color-scheme: dark)").matches
-          ? "dark"
-          : "light"
-        : theme;
+  useEffect(() => {
+    setResolvedTheme(resolveTheme(theme, enableSystem));
+  }, [theme, enableSystem]);
 
   useEffect(() => {
     const root = document.documentElement;
-    const resolved =
-      theme === "system" && enableSystem
-        ? window.matchMedia("(prefers-color-scheme: dark)").matches
-          ? "dark"
-          : "light"
-        : theme;
+    const resolved = resolveTheme(theme, enableSystem);
 
     if (attribute === "class") {
       root.classList.remove("light", "dark");
@@ -97,8 +98,9 @@ export function ThemeProvider({
     const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
     const listener = () => {
       if (theme === "system") {
-        const root = document.documentElement;
         const resolved = mediaQuery.matches ? "dark" : "light";
+        setResolvedTheme(resolved);
+        const root = document.documentElement;
         if (attribute === "class") {
           root.classList.remove("light", "dark");
           root.classList.add(resolved);

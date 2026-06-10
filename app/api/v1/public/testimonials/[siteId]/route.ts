@@ -101,9 +101,18 @@ export async function GET(
 
   // Cursor-based pagination (fallback)
   if (cursor) {
-    const decoded = Buffer.from(cursor, "base64url").toString();
+    let cursorDate: Date;
+    try {
+      const decoded = Buffer.from(cursor, "base64url").toString();
+      cursorDate = new Date(decoded);
+      if (isNaN(cursorDate.getTime())) {
+        return apiError("VALIDATION_ERROR", "Invalid cursor");
+      }
+    } catch {
+      return apiError("VALIDATION_ERROR", "Invalid cursor");
+    }
     const orderOp = sort === "oldest" ? gt : lt;
-    conditions.push(orderOp(testimonials.createdAt, new Date(decoded)));
+    conditions.push(orderOp(testimonials.createdAt, cursorDate));
   }
 
   const rows = await withRetry(async () => {

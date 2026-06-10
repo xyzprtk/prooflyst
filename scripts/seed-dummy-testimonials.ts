@@ -127,7 +127,7 @@ async function main() {
     const author = AUTHORS[i % AUTHORS.length];
     const content = CONTENT_TEMPLATES[i % CONTENT_TEMPLATES.length];
     const rating = [1, 2, 3, 4, 5, 5, 5, 4, 5, 5][i % 10]; // skewed toward 4-5 stars
-    const createdAt = now - i * 3600 * 6; // spaced 6 hours apart
+    const createdAt = now - i * 3600 * 6 * 1000; // spaced 6 hours apart (ms)
 
     try {
       await client.execute({

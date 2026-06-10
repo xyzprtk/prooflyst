@@ -51,20 +51,48 @@ export default function SetupPage() {
   }
 
   async function copyToClipboard(text: string, label: string) {
-    await navigator.clipboard.writeText(text);
-    setCopied(label);
-    setTimeout(() => setCopied(null), 2000);
+    if (!navigator.clipboard?.writeText) {
+      console.error("Clipboard API unavailable");
+      setCopied("error");
+      setTimeout(() => setCopied(null), 2000);
+      return;
+    }
+    try {
+      await navigator.clipboard.writeText(text);
+      setCopied(label);
+      setTimeout(() => setCopied(null), 2000);
+    } catch (err) {
+      console.error("Failed to copy to clipboard:", err);
+      setCopied("error");
+      setTimeout(() => setCopied(null), 2000);
+    }
   }
 
   async function handleContinue() {
     if (!result) return;
-    await fetch("/api/auth/login", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ key: result.admin_key }),
-    });
-    router.push("/dashboard");
-    router.refresh();
+    setError("");
+    try {
+      const res = await fetch("/api/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ key: result.admin_key }),
+      });
+      if (!res.ok) {
+        let message = "Failed to sign in";
+        try {
+          const data = await res.json();
+          message = data.error?.message ?? message;
+        } catch {
+          message = "Unexpected error";
+        }
+        setError(message);
+        return;
+      }
+      router.push("/dashboard");
+      router.refresh();
+    } catch {
+      setError("Something went wrong");
+    }
   }
 
   function inputIconClass(field: string) {
@@ -260,8 +288,26 @@ export default function SetupPage() {
                     transition={{ duration: 0.4 }}
                     className="flex flex-col gap-5"
                   >
-                    <KeyDisplay label="Admin Key" value={result.admin_key} copied={copied === "admin"} onCopy={() => copyToClipboard(result.admin_key, "admin")} />
-                    <KeyDisplay label="Public Key" value={result.public_key} copied={copied === "public"} onCopy={() => copyToClipboard(result.public_key, "public")} />
+                    <KeyDisplay label="Admin Key" value={result.admin_key} copied={copied === "admin" ? "success" : copied === "error" ? "error" : null} onCopy={() => copyToClipboard(result.admin_key, "admin")} />
+                    <KeyDisplay label="Public Key" value={result.public_key} copied={copied === "public" ? "success" : copied === "error" ? "error" : null} onCopy={() => copyToClipboard(result.public_key, "public")} />
+
+                    <AnimatePresence mode="wait">
+                      {error && (
+                        <m.div
+                          key="continue-error"
+                          initial={{ opacity: 0, height: 0, y: -4 }}
+                          animate={{ opacity: 1, height: "auto", y: 0 }}
+                          exit={{ opacity: 0, height: 0, y: -4 }}
+                          transition={{ duration: 0.25 }}
+                          className="overflow-hidden"
+                        >
+                          <p className="flex items-center gap-1.5 text-sm text-destructive">
+                            <AlertCircle className="h-3.5 w-3.5 shrink-0" />
+                            {error}
+                          </p>
+                        </m.div>
+                      )}
+                    </AnimatePresence>
 
                     <m.div
                       initial={{ opacity: 0, scale: 0.97 }}
@@ -293,7 +339,7 @@ export default function SetupPage() {
   );
 }
 
-function KeyDisplay({ label, value, copied, onCopy }: { label: string; value: string; copied: boolean; onCopy: () => void }) {
+function KeyDisplay({ label, value, copied, onCopy }: { label: string; value: string; copied: "success" | "error" | null; onCopy: () => void }) {
   return (
     <div className="flex flex-col gap-2">
       <span className="text-sm font-medium">{label}</span>
@@ -301,9 +347,13 @@ function KeyDisplay({ label, value, copied, onCopy }: { label: string; value: st
         <code className="flex-1 truncate rounded-xl bg-muted/70 px-4 py-3 text-xs font-mono border border-border/40">{value}</code>
         <Button variant="outline" size="icon" onClick={onCopy} className="h-11 w-11 rounded-xl shrink-0 transition-all duration-200 hover:bg-primary/5 hover:border-primary/20">
           <AnimatePresence mode="wait" initial={false}>
-            {copied ? (
+            {copied === "success" ? (
               <m.div key="check" initial={{ scale: 0.5, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.5, opacity: 0 }} transition={{ duration: 0.15 }}>
                 <Check className="h-4 w-4 text-green-600" />
+              </m.div>
+            ) : copied === "error" ? (
+              <m.div key="error" initial={{ scale: 0.5, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.5, opacity: 0 }} transition={{ duration: 0.15 }}>
+                <AlertCircle className="h-4 w-4 text-destructive" />
               </m.div>
             ) : (
               <m.div key="copy" initial={{ scale: 0.5, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.5, opacity: 0 }} transition={{ duration: 0.15 }}>

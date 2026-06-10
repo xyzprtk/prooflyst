@@ -79,9 +79,10 @@ async function main() {
     return;
   }
 
-  // Migrate testimonials
+  const updates: { sql: string; args: (typeof SECONDS_THRESHOLD)[] }[] = [];
+
   if (testimonialNeedsMigration > 0) {
-    const result = await client.execute({
+    updates.push({
       sql: `
         UPDATE testimonials
         SET created_at = created_at * 1000,
@@ -90,12 +91,10 @@ async function main() {
       `,
       args: [SECONDS_THRESHOLD],
     });
-    console.log(`✅ Migrated ${result.rowsAffected} testimonials`);
   }
 
-  // Migrate sites
   if (siteNeedsMigration > 0) {
-    const result = await client.execute({
+    updates.push({
       sql: `
         UPDATE sites
         SET created_at = created_at * 1000
@@ -103,7 +102,22 @@ async function main() {
       `,
       args: [SECONDS_THRESHOLD],
     });
-    console.log(`✅ Migrated ${result.rowsAffected} sites`);
+  }
+
+  if (updates.length > 0) {
+    try {
+      const results = await client.batch(updates, "write");
+      if (testimonialNeedsMigration > 0) {
+        console.log(`✅ Migrated ${results[0].rowsAffected} testimonials`);
+      }
+      if (siteNeedsMigration > 0) {
+        const siteResultIndex = testimonialNeedsMigration > 0 ? 1 : 0;
+        console.log(`✅ Migrated ${results[siteResultIndex].rowsAffected} sites`);
+      }
+    } catch (err) {
+      console.error("❌ Migration transaction failed, no changes committed:", err);
+      throw err;
+    }
   }
 
   // Verify a sample

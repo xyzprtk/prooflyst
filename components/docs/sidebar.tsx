@@ -47,7 +47,7 @@ export function DocsSidebar() {
               href="/setup"
               className="block rounded-lg px-3 py-2 text-sm text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
             >
-              Dashboard
+              Get Started
             </a>
           </nav>
         </div>

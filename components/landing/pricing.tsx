@@ -1,6 +1,6 @@
 "use client";
 
-import { LazyMotion, m, domAnimation } from "motion/react";
+import { m } from "motion/react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Check } from "lucide-react";
@@ -23,7 +23,6 @@ const proFeatures = [
 
 export function PricingSection() {
   return (
-    <LazyMotion features={domAnimation}>
     <section id="pricing" className="py-32">
       <div className="mx-auto max-w-7xl px-6">
         <FadeIn className="text-center max-w-2xl mx-auto mb-20">
@@ -97,6 +96,5 @@ export function PricingSection() {
         </StaggerContainer>
       </div>
     </section>
-    </LazyMotion>
   );
 }

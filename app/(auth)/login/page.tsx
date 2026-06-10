@@ -35,8 +35,19 @@ export default function LoginPage() {
       });
 
       if (!res.ok) {
-        const data = await res.json();
-        setError(data.error?.message ?? "Invalid admin key");
+        let message = "Invalid admin key";
+        try {
+          const data = await res.json();
+          message = data.error?.message ?? message;
+        } catch {
+          try {
+            const text = await res.text();
+            if (text) message = text;
+          } catch {
+            message = "Unexpected error";
+          }
+        }
+        setError(message);
         setLoading(false);
         return;
       }
