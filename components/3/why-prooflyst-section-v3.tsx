@@ -1,6 +1,6 @@
 "use client";
 
-import { motion } from "framer-motion";
+import { LazyMotion, m, domAnimation } from "motion/react";
 import { TerminalCard } from "./terminal-card";
 import { FadeIn } from "./motion-utils";
 
@@ -39,6 +39,7 @@ renderTestimonials(data);`;
 
 export function WhyProoflystSectionV3() {
   return (
+    <LazyMotion features={domAnimation}>
     <section className="py-32">
       <div className="mx-auto max-w-7xl px-6">
         <FadeIn className="mb-20 max-w-xl">
@@ -69,5 +70,6 @@ export function WhyProoflystSectionV3() {
         </div>
       </div>
     </section>
+    </LazyMotion>
   );
 }

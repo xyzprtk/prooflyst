@@ -1,8 +1,17 @@
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Prooflyst — Social Proof Platform",
+  description:
+    "Collect, manage, and display testimonials with a powerful API and beautiful embedded widgets.",
+};
+
+import { LazyMotionProvider } from "@/components/lazy-motion-provider";
 import { Navbar } from "@/components/landing/navbar";
 import { HeroSection } from "@/components/landing/hero";
 import { PainSection } from "@/components/landing/pain-section";
 import { SectionDivider } from "@/components/landing/section-divider";
-import { HowItWorksSection } from "@/components/landing/how-it-works";
+import { HowItWorksSectionDark } from "@/components/landing/how-it-works-dark";
 import { WallOfProofSection } from "@/components/landing/wall-of-proof";
 import { CodePreviewSection } from "@/components/landing/code-preview";
 import { WhyProoflystSection } from "@/components/landing/why-prooflyst";
@@ -13,26 +22,26 @@ import { Footer } from "@/components/footer";
 
 export default function LandingPage() {
   return (
-    <main className="min-h-screen">
-      <Navbar />
-      <HeroSection />
-      <SectionDivider />
-      <PainSection />
-      <SectionDivider />
-      <HowItWorksSection />
-      <SectionDivider />
-      <WallOfProofSection />
-      <SectionDivider />
-      <CodePreviewSection />
-      <SectionDivider />
-      <WhyProoflystSection />
-      <SectionDivider />
-      <PricingSection />
-      <SectionDivider />
-      <PhilosophySection />
-      <SectionDivider />
-      <FinalCTASection />
-      <Footer />
-    </main>
+    <LazyMotionProvider>
+      <main className="min-h-screen">
+        <Navbar />
+        <HeroSection />
+        <SectionDivider />
+        <PainSection />
+        <HowItWorksSectionDark />
+        <WallOfProofSection />
+        <SectionDivider />
+        <CodePreviewSection />
+        <SectionDivider />
+        <WhyProoflystSection />
+        <SectionDivider />
+        <PricingSection />
+        <SectionDivider />
+        <PhilosophySection />
+        <SectionDivider />
+        <FinalCTASection />
+        <Footer />
+      </main>
+    </LazyMotionProvider>
   );
 }

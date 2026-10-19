@@ -8,6 +8,7 @@
     "start": "next start",
     "lint": "eslint",
     "seed": "node scripts/seed.mjs",
+    "seed:dummy": "npx tsx scripts/seed-dummy-testimonials.ts",
     "sync": "node scripts/sync-to-db.mjs",
     "db:push": "drizzle-kit push",
     "db:generate": "drizzle-kit generate",
@@ -15,7 +16,8 @@
     "db:studio": "drizzle-kit studio",
     "test": "vitest run",
     "test:watch": "vitest",
-    "test:coverage": "vitest run --coverage"
+    "test:coverage": "vitest run --coverage",
+    "doctor": "npx react-doctor@latest"
   },
   "dependencies": {
     "@base-ui/react": "^1.3.0",
@@ -27,6 +29,7 @@
     "drizzle-orm": "^0.45.1",
     "framer-motion": "^12.38.0",
     "lucide-react": "^1.7.0",
+    "motion": "^12.38.0",
     "next": "16.2.1",
     "next-themes": "^0.4.6",
     "react": "19.2.4",
@@ -46,6 +49,7 @@
     "drizzle-kit": "^0.31.10",
     "eslint": "^9",
     "eslint-config-next": "16.2.1",
+    "react-doctor": "^0.5.0",
     "tailwindcss": "^4",
     "typescript": "^5",
     "vitest": "^4.1.5"

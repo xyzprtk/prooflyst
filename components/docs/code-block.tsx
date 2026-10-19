@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { LazyMotion, m, AnimatePresence, domAnimation } from "motion/react";
 import { Check, Copy } from "lucide-react";
 import { ReactNode } from "react";
 
@@ -23,6 +23,7 @@ export function CodeBlock({ language, title, children }: CodeBlockProps) {
   };
 
   return (
+    <LazyMotion features={domAnimation}>
     <div className="rounded-lg border border-border/40 bg-muted/40 overflow-hidden my-6 group">
       {/* Top bar */}
       <div className="flex items-center justify-between px-4 py-2 border-b border-border/30 bg-muted/60">
@@ -34,13 +35,14 @@ export function CodeBlock({ language, title, children }: CodeBlockProps) {
         </div>
 
         <button
-          onClick={handleCopy}
+                      type="button"
+                      onClick={handleCopy}
           className="flex items-center gap-1.5 rounded-md px-2 py-1 text-[11px] font-mono text-muted-foreground hover:text-foreground hover:bg-foreground/5 transition-colors"
           aria-label="Copy code"
         >
           <AnimatePresence mode="wait" initial={false}>
             {copied ? (
-              <motion.span
+              <m.span
                 key="copied"
                 initial={{ opacity: 0, scale: 0.8 }}
                 animate={{ opacity: 1, scale: 1 }}
@@ -50,9 +52,9 @@ export function CodeBlock({ language, title, children }: CodeBlockProps) {
               >
                 <Check className="h-3 w-3" />
                 Copied
-              </motion.span>
+              </m.span>
             ) : (
-              <motion.span
+              <m.span
                 key="copy"
                 initial={{ opacity: 0, scale: 0.8 }}
                 animate={{ opacity: 1, scale: 1 }}
@@ -62,7 +64,7 @@ export function CodeBlock({ language, title, children }: CodeBlockProps) {
               >
                 <Copy className="h-3 w-3" />
                 Copy
-              </motion.span>
+              </m.span>
             )}
           </AnimatePresence>
         </button>
@@ -73,6 +75,7 @@ export function CodeBlock({ language, title, children }: CodeBlockProps) {
         <code className="text-foreground/85">{children}</code>
       </pre>
     </div>
+    </LazyMotion>
   );
 }
 
@@ -94,7 +97,7 @@ export function Endpoint({ method, path }: { method: string; path: string }) {
   };
 
   return (
-    <motion.div
+    <m.div
       initial={{ opacity: 0, x: -8 }}
       whileInView={{ opacity: 1, x: 0 }}
       viewport={{ once: true }}
@@ -105,7 +108,7 @@ export function Endpoint({ method, path }: { method: string; path: string }) {
         {method}
       </span>
       <span className="text-muted-foreground">{path}</span>
-    </motion.div>
+    </m.div>
   );
 }
 
@@ -123,7 +126,7 @@ export function ParameterTable({ params }: { params: { name: string; type: strin
         </thead>
         <tbody>
           {params.map((p, i) => (
-            <motion.tr
+            <m.tr
               key={p.name}
               initial={{ opacity: 0, y: 4 }}
               whileInView={{ opacity: 1, y: 0 }}
@@ -139,7 +142,7 @@ export function ParameterTable({ params }: { params: { name: string; type: strin
                 </span>
               </td>
               <td className="py-2.5 px-3 text-muted-foreground text-sm">{p.description}</td>
-            </motion.tr>
+            </m.tr>
           ))}
         </tbody>
       </table>

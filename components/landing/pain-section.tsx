@@ -1,12 +1,13 @@
 "use client";
 
-import { motion } from "framer-motion";
+import { LazyMotion, m, domAnimation } from "motion/react";
 
 export function PainSection() {
   return (
+    <LazyMotion features={domAnimation}>
     <section className="py-32">
       <div className="mx-auto max-w-5xl px-6">
-        <motion.p
+        <m.p
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
@@ -14,9 +15,9 @@ export function PainSection() {
           className="text-2xl md:text-3xl lg:text-4xl text-foreground/90 leading-snug tracking-tight"
         >
           Most teams track customer feedback across Slack threads, screenshots, and scattered docs. It&apos;s messy, unsearchable, and impossible to act on.
-        </motion.p>
+        </m.p>
 
-        <motion.p
+        <m.p
           initial={{ opacity: 0, y: 16 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
@@ -24,8 +25,9 @@ export function PainSection() {
           className="text-xl md:text-2xl lg:text-3xl font-semibold text-primary mt-8"
         >
           Prooflyst fixes that.
-        </motion.p>
+        </m.p>
       </div>
     </section>
+    </LazyMotion>
   );
 }

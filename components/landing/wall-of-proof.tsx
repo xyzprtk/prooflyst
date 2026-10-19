@@ -1,23 +1,26 @@
 "use client";
 
-import { motion, useMotionValue, useSpring, useTransform } from "framer-motion";
+import { LazyMotion, m, useMotionValue, useSpring, useTransform, domAnimation } from "motion/react";
 import { Card, CardContent } from "@/components/ui/card";
 import { StaggerContainer, StaggerItem } from "./motion-utils";
 
 const wallItems = [
   {
+    id: "placeholder-1",
     content: "This space is reserved for our very first user. Will it be you?",
     author: "You",
     role: "Your role",
     company: "Your company",
   },
   {
+    id: "placeholder-2",
     content: "Imagine your best customer saying something amazing about your product right here.",
     author: "Future You",
     role: "Founder",
     company: "Your startup",
   },
   {
+    id: "placeholder-3",
     content: "We built this because collecting feedback shouldn't require a messy spreadsheet.",
     author: "The Prooflyst Team",
     role: "Builders",
@@ -49,7 +52,8 @@ function TiltCard({ item, index }: { item: typeof wallItems[0]; index: number })
   };
 
   return (
-    <motion.div
+    <LazyMotion features={domAnimation}>
+    <m.div
       style={{ rotateX, rotateY, transformStyle: "preserve-3d", perspective: 1000 }}
       onMouseMove={handleMouseMove}
       onMouseLeave={handleMouseLeave}
@@ -61,7 +65,7 @@ function TiltCard({ item, index }: { item: typeof wallItems[0]; index: number })
         </div>
 
         <CardContent className="p-6 relative">
-          <motion.div
+          <m.div
             className="text-5xl font-serif text-primary/10 leading-none mb-2 select-none"
             initial={{ opacity: 0, y: 10 }}
             whileInView={{ opacity: 1, y: 0 }}
@@ -69,14 +73,14 @@ function TiltCard({ item, index }: { item: typeof wallItems[0]; index: number })
             transition={{ delay: 0.2 + index * 0.1, duration: 0.5 }}
           >
             &ldquo;
-          </motion.div>
+          </m.div>
 
           <p className="text-sm text-foreground leading-relaxed mb-6 relative z-10">
             {item.content}
           </p>
 
           <div className="flex items-center gap-3">
-            <motion.div
+            <m.div
               className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center"
               whileHover={{ scale: 1.1, rotate: 5 }}
               transition={{ type: "spring", stiffness: 400, damping: 10 }}
@@ -84,7 +88,7 @@ function TiltCard({ item, index }: { item: typeof wallItems[0]; index: number })
               <span className="text-xs font-medium text-primary">
                 {item.author.split(" ").map((n) => n[0]).join("")}
               </span>
-            </motion.div>
+            </m.div>
             <div>
               <p className="text-sm font-medium">{item.author}</p>
               <p className="text-xs text-muted-foreground">
@@ -94,7 +98,8 @@ function TiltCard({ item, index }: { item: typeof wallItems[0]; index: number })
           </div>
         </CardContent>
       </Card>
-    </motion.div>
+    </m.div>
+    </LazyMotion>
   );
 }
 
@@ -102,7 +107,7 @@ export function WallOfProofSection() {
   return (
     <section className="py-32">
       <div className="mx-auto max-w-5xl px-6">
-        <motion.div
+        <m.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
@@ -115,11 +120,11 @@ export function WallOfProofSection() {
           <p className="text-base text-muted-foreground leading-relaxed">
             Not a list. Not a doc. A living system of credibility.
           </p>
-        </motion.div>
+        </m.div>
 
         <StaggerContainer className="grid md:grid-cols-3 gap-6" staggerDelay={0.12}>
           {wallItems.map((item, index) => (
-            <StaggerItem key={index}>
+            <StaggerItem key={item.id}>
               <TiltCard item={item} index={index} />
             </StaggerItem>
           ))}

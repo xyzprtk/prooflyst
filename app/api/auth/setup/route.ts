@@ -9,12 +9,19 @@ import {
 } from "@/lib/keys";
 import { apiError } from "@/lib/errors";
 import { withRetry } from "@/lib/retry";
+import { checkRateLimit, publicSubmitLimiter, getClientIP } from "@/lib/rate-limit";
 import { eq } from "drizzle-orm";
 
 export async function POST(request: Request) {
+  const ip = getClientIP(request);
+  const { limited, headers } = await checkRateLimit(publicSubmitLimiter, `setup:${ip}`);
+  if (limited) {
+    return apiError("RATE_LIMITED", "Too many requests. Please try again later.", undefined, headers);
+  }
+
   const body = await request.json().catch(() => null);
   if (!body?.name || !body?.slug || !body?.domain) {
-    return apiError("VALIDATION_ERROR", "Name, slug, and domain are required");
+    return apiError("VALIDATION_ERROR", "Name, slug, and domain are required", undefined, headers);
   }
 
   const { name, slug, domain } = body;
@@ -66,6 +73,6 @@ export async function POST(request: Request) {
         public_key: publicKey,
       },
     },
-    { status: 201 }
+    { status: 201, headers }
   );
 }

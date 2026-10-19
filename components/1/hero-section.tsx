@@ -22,7 +22,7 @@ export function HeroSection() {
         </p>
 
         <div className="flex flex-col sm:flex-row gap-4 justify-center mb-12">
-          <Button size="lg" className="rounded-full text-base px-8 h-11" render={<Link href="/dashboard/setup" />}>
+          <Button size="lg" className="rounded-full text-base px-8 h-11" render={<Link href="/setup" />}>
             Start Building
             <ArrowRight className="ml-2 h-4 w-4" />
           </Button>
@@ -30,7 +30,7 @@ export function HeroSection() {
             size="lg"
             variant="outline"
             className="rounded-full text-base px-8 h-11"
-            render={<Link href="/dashboard/login" />}
+            render={<Link href="/login" />}
           >
             Open Dashboard
           </Button>

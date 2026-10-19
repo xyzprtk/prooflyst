@@ -1,10 +1,13 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
 import { db } from "@/lib/db";
 import { sites, testimonials } from "@/lib/db/schema";
-import { eq, and, desc } from "drizzle-orm";
+import { eq, and, desc, count } from "drizzle-orm";
 import { notFound } from "next/navigation";
 import { withRetry } from "@/lib/retry";
 import { TestimonialWall } from "@/components/hosted/testimonial-wall";
+
+const PAGE_SIZE = 20;
 
 async function getSiteBySlug(slug: string) {
   return withRetry(async () => {
@@ -17,8 +20,9 @@ async function getSiteBySlug(slug: string) {
   });
 }
 
-async function getApprovedTestimonials(siteId: string) {
+async function getApprovedTestimonialsPage(siteId: string, page: number) {
   return withRetry(async () => {
+    const offset = (page - 1) * PAGE_SIZE;
     return db
       .select({
         id: testimonials.id,
@@ -35,7 +39,23 @@ async function getApprovedTestimonials(siteId: string) {
         )
       )
       .orderBy(desc(testimonials.createdAt))
-      .limit(13);
+      .limit(PAGE_SIZE)
+      .offset(offset);
+  });
+}
+
+async function getApprovedTestimonialsCount(siteId: string) {
+  return withRetry(async () => {
+    const [result] = await db
+      .select({ count: count() })
+      .from(testimonials)
+      .where(
+        and(
+          eq(testimonials.siteId, siteId),
+          eq(testimonials.status, "approved")
+        )
+      );
+    return Number(result.count);
   });
 }
 
@@ -65,23 +85,25 @@ export async function generateMetadata({
 
 export default async function TestimonialWallPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ slug: string }>;
+  searchParams: Promise<{ p?: string }>;
 }) {
-  const { slug } = await params;
-  const site = await getSiteBySlug(slug);
+  const [{ slug }, { p }] = await Promise.all([params, searchParams]);
 
+  const site = await getSiteBySlug(slug);
   if (!site) notFound();
 
-  const rows = await getApprovedTestimonials(site.id);
-  const hasMore = rows.length > 12;
-  const approved = hasMore ? rows.slice(0, 12) : rows;
+  const currentPage = Math.max(1, parseInt(p ?? "1", 10) || 1);
+  const [rows, totalCount] = await Promise.all([
+    getApprovedTestimonialsPage(site.id, currentPage),
+    getApprovedTestimonialsCount(site.id),
+  ]);
 
-  const nextCursor = hasMore
-    ? Buffer.from(approved[approved.length - 1].createdAt.toISOString()).toString("base64url")
-    : null;
+  const totalPages = Math.ceil(totalCount / PAGE_SIZE);
 
-  const initialTestimonials = approved.map((t) => ({
+  const initialTestimonials = rows.map((t) => ({
     id: t.id,
     author: t.author,
     content: t.content,
@@ -90,14 +112,17 @@ export default async function TestimonialWallPage({
   }));
 
   return (
-    <TestimonialWall
-      siteName={site.name}
-      siteId={site.id}
-      slug={slug}
-      branding={site.branding}
-      initialTestimonials={initialTestimonials}
-      nextCursor={nextCursor}
-      initialCount={approved.length}
-    />
+    <Suspense fallback={null}>
+      <TestimonialWall
+        siteName={site.name}
+        siteId={site.id}
+        slug={slug}
+        branding={site.branding}
+        initialTestimonials={initialTestimonials}
+        initialPage={currentPage}
+        totalPages={totalPages}
+        totalCount={totalCount}
+      />
+    </Suspense>
   );
 }

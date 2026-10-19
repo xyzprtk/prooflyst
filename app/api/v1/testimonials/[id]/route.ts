@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { testimonials } from "@/lib/db/schema";
-import { authenticateAdmin } from "@/lib/auth";
+import { checkAdminRateLimit } from "@/lib/admin-rate-limit";
 import { moderateTestimonialSchema } from "@/lib/validations";
 import { apiError } from "@/lib/errors";
 import { withRetry } from "@/lib/retry";
@@ -11,9 +11,12 @@ export async function PATCH(
   request: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  const auth = await authenticateAdmin(request);
+  const { auth, limited, headers } = await checkAdminRateLimit(request);
   if (!auth.success) {
     return apiError("UNAUTHORIZED", auth.error);
+  }
+  if (limited) {
+    return apiError("RATE_LIMITED", "Too many requests. Please try again later.", undefined, headers);
   }
 
   const body = await request.json().catch(() => null);
@@ -47,25 +50,31 @@ export async function PATCH(
   });
 
   if (!updated) {
-    return apiError("NOT_FOUND", "Testimonial not found");
+    return apiError("NOT_FOUND", "Testimonial not found", undefined, headers);
   }
 
-  return NextResponse.json({
-    testimonial: {
-      id: updated.id,
-      status: updated.status,
-      updated_at: updated.updatedAt,
+  return NextResponse.json(
+    {
+      testimonial: {
+        id: updated.id,
+        status: updated.status,
+        updated_at: updated.updatedAt,
+      },
     },
-  });
+    { headers }
+  );
 }
 
 export async function DELETE(
   request: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  const auth = await authenticateAdmin(request);
+  const { auth, limited, headers } = await checkAdminRateLimit(request);
   if (!auth.success) {
     return apiError("UNAUTHORIZED", auth.error);
+  }
+  if (limited) {
+    return apiError("RATE_LIMITED", "Too many requests. Please try again later.", undefined, headers);
   }
 
   const { id } = await params;
@@ -87,14 +96,17 @@ export async function DELETE(
   });
 
   if (!deleted) {
-    return apiError("NOT_FOUND", "Testimonial not found");
+    return apiError("NOT_FOUND", "Testimonial not found", undefined, headers);
   }
 
-  return NextResponse.json({
-    testimonial: {
-      id: deleted.id,
-      status: deleted.status,
-      updated_at: deleted.updatedAt,
+  return NextResponse.json(
+    {
+      testimonial: {
+        id: deleted.id,
+        status: deleted.status,
+        updated_at: deleted.updatedAt,
+      },
     },
-  });
+    { headers }
+  );
 }

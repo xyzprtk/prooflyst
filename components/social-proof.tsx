@@ -2,14 +2,17 @@ import { Quote } from "lucide-react";
 
 const testimonials = [
   {
+    id: "testimonial-1",
     quote: "Feels like Stripe for testimonials.",
     author: "Indie Hacker",
   },
   {
+    id: "testimonial-2",
     quote: "I stopped using Notion for testimonials after this.",
     author: "SaaS Founder",
   },
   {
+    id: "testimonial-3",
     quote: "Finally something that doesn't feel like a form builder.",
     author: "Developer",
   },

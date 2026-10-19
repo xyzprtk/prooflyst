@@ -7,15 +7,23 @@ import {
   listTestimonialsSchema,
 } from "@/lib/validations";
 import { apiError } from "@/lib/errors";
-import { generateTestimonialId } from "@/lib/keys";
+import { generateTestimonialId, hashKey } from "@/lib/keys";
 import { sanitizeString } from "@/lib/sanitize";
 import { withRetry } from "@/lib/retry";
+import { checkRateLimit, publicSubmitLimiter, adminLimiter, getClientIP } from "@/lib/rate-limit";
 import { eq, and, desc, asc, lt, gt } from "drizzle-orm";
 
 export async function POST(request: Request) {
+  const ip = getClientIP(request);
   const body = await request.json().catch(() => null);
+  const identifier = body?.public_key ? `submit:${body.public_key}` : `submit:${ip}`;
+  const { limited, headers } = await checkRateLimit(publicSubmitLimiter, identifier);
+  if (limited) {
+    return apiError("RATE_LIMITED", "Too many requests. Please try again later.", undefined, headers);
+  }
+
   if (!body) {
-    return apiError("VALIDATION_ERROR", "Invalid JSON body");
+    return apiError("VALIDATION_ERROR", "Invalid JSON body", undefined, headers);
   }
 
   const parsed = submitTestimonialSchema.safeParse(body);
@@ -34,7 +42,9 @@ export async function POST(request: Request) {
   if (!auth.success) {
     return apiError(
       auth.status === 404 ? "NOT_FOUND" : "FORBIDDEN",
-      auth.error
+      auth.error,
+      undefined,
+      headers
     );
   }
 
@@ -53,7 +63,7 @@ export async function POST(request: Request) {
 
   return NextResponse.json(
     { success: true, message: "Testimonial submitted successfully." },
-    { status: 201 }
+    { status: 201, headers }
   );
 }
 
@@ -61,6 +71,13 @@ export async function GET(request: NextRequest) {
   const auth = await authenticateAdmin(request);
   if (!auth.success) {
     return apiError("UNAUTHORIZED", auth.error);
+  }
+
+  const adminKey = request.headers.get("authorization")!.slice(7);
+  const adminHash = hashKey(adminKey);
+  const { limited, headers } = await checkRateLimit(adminLimiter, `admin:${adminHash}`);
+  if (limited) {
+    return apiError("RATE_LIMITED", "Too many requests. Please try again later.", undefined, headers);
   }
 
   const searchParams = request.nextUrl.searchParams;
@@ -119,17 +136,20 @@ export async function GET(request: NextRequest) {
       )
     : null;
 
-  return NextResponse.json({
-    testimonials: items.map((t) => ({
-      id: t.id,
-      site_id: t.siteId,
-      author: t.author,
-      content: t.content,
-      rating: t.rating,
-      status: t.status,
-      created_at: t.createdAt,
-    })),
-    next_cursor: nextCursor,
-    has_more: hasMore,
-  });
+  return NextResponse.json(
+    {
+      testimonials: items.map((t) => ({
+        id: t.id,
+        site_id: t.siteId,
+        author: t.author,
+        content: t.content,
+        rating: t.rating,
+        status: t.status,
+        created_at: t.createdAt,
+      })),
+      next_cursor: nextCursor,
+      has_more: hasMore,
+    },
+    { headers }
+  );
 }

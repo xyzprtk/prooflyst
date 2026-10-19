@@ -1,5 +1,5 @@
 import { drizzle } from "drizzle-orm/libsql";
-import { createClient } from "@libsql/client";
+import { createClient, type InArgs } from "@libsql/client";
 import * as schema from "./schema";
 
 function createTursoClient() {
@@ -24,3 +24,8 @@ function createTursoClient() {
 
 const client = createTursoClient();
 export const db = drizzle({ client, schema });
+
+/** Run raw SQL against the LibSQL client (e.g. test setup DDL). */
+export async function executeRawSql(sql: string, args?: InArgs) {
+  return client.execute({ sql, args });
+}

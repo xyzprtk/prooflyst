@@ -20,8 +20,8 @@ function useScrollState() {
 function LogoInverseInner() {
   return (
     <div className="relative h-5 w-5">
-      <Image src="/logos/logo-light.png" alt="Prooflyst" width={20} height={20} className="absolute inset-0 block dark:hidden" />
-      <Image src="/logos/logo-dark.png" alt="Prooflyst" width={20} height={20} className="absolute inset-0 hidden dark:block" />
+      <Image src="/logos/logo-light.png" alt="Prooflyst" fill className="absolute inset-0 block dark:hidden" sizes="20px" />
+      <Image src="/logos/logo-dark.png" alt="Prooflyst" fill className="absolute inset-0 hidden dark:block" sizes="20px" />
     </div>
   );
 }
@@ -82,7 +82,7 @@ export function NavbarDocs() {
             <GitHubIcon className="h-4 w-4" />
           </Link>
           <Link
-            href="/dashboard/setup"
+            href="/setup"
             className={cn(
               "rounded-full px-5 py-2 text-sm font-medium transition-colors",
               "bg-white text-slate-900 hover:bg-white/90 dark:bg-slate-900 dark:text-white dark:hover:bg-slate-900/90"

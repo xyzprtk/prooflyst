@@ -60,6 +60,7 @@ export function ThemeToggle({ inverse = false }: { inverse?: boolean }) {
       className={buttonClassName}
       onClick={cycleTheme}
       title={mode === "light" ? "Light mode" : mode === "dark" ? "Dark mode" : "System mode"}
+      suppressHydrationWarning
     >
       {inverse ? (
         <>

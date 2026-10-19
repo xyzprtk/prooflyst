@@ -13,7 +13,7 @@ export function FinalCTASection() {
           <p className="text-base text-muted-foreground mb-8">
             You just haven&apos;t structured it yet.
           </p>
-          <Button size="lg" className="rounded-full text-base px-8 h-11" render={<Link href="/dashboard/setup" />}>
+          <Button size="lg" className="rounded-full text-base px-8 h-11" render={<Link href="/setup" />}>
             Start building your proof system
             <ArrowRight className="ml-2 h-4 w-4" />
           </Button>

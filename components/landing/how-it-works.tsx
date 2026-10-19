@@ -1,11 +1,12 @@
 "use client";
 
-import { motion, useMotionValue, useSpring, useTransform } from "framer-motion";
+import { LazyMotion, m, useMotionValue, useSpring, useTransform, domAnimation } from "motion/react";
 import { Card, CardContent } from "@/components/ui/card";
 import { FadeIn, StaggerContainer, StaggerItem } from "./motion-utils";
 
 function IsometricBrowser() {
   return (
+    <LazyMotion features={domAnimation}>
     <svg viewBox="0 0 200 160" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-full h-auto max-w-[180px] mx-auto">
       <path d="M20 130 L100 170 L180 130 L100 90 Z" fill="currentColor" fillOpacity="0.04" />
       <path d="M40 50 L100 20 L160 50 L100 80 Z" fill="currentColor" fillOpacity="0.06" stroke="currentColor" strokeOpacity="0.15" strokeWidth="1" />
@@ -18,14 +19,14 @@ function IsometricBrowser() {
       <path d="M55 75 L85 60" stroke="currentColor" strokeOpacity="0.2" strokeWidth="2" strokeLinecap="round" />
       <path d="M55 85 L75 75" stroke="currentColor" strokeOpacity="0.12" strokeWidth="2" strokeLinecap="round" />
       <path d="M55 95 L70 87" stroke="currentColor" strokeOpacity="0.12" strokeWidth="2" strokeLinecap="round" />
-      <motion.path
+      <m.path
         d="M110 65 L140 50 L140 70 L110 85 Z"
         fill="#3B82F6"
         fillOpacity="0.2"
         animate={{ fillOpacity: [0.15, 0.3, 0.15] }}
         transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
       />
-      <motion.path
+      <m.path
         d="M110 85 L140 70 L140 90 L110 105 Z"
         fill="#3B82F6"
         fillOpacity="0.12"
@@ -33,6 +34,7 @@ function IsometricBrowser() {
         transition={{ duration: 3, repeat: Infinity, ease: "easeInOut", delay: 0.5 }}
       />
     </svg>
+    </LazyMotion>
   );
 }
 
@@ -45,7 +47,7 @@ function IsometricForm() {
       <path d="M100 85 L100 135 L150 110 L150 60 Z" fill="currentColor" fillOpacity="0.03" stroke="currentColor" strokeOpacity="0.15" strokeWidth="1" />
       <path d="M60 78 L90 63 L90 73 L60 88 Z" fill="currentColor" fillOpacity="0.1" />
       <path d="M60 93 L85 80 L85 90 L60 103 Z" fill="currentColor" fillOpacity="0.06" />
-      <motion.path
+      <m.path
         d="M60 108 L95 90 L95 100 L60 118 Z"
         fill="#3B82F6"
         fillOpacity="0.25"
@@ -54,7 +56,7 @@ function IsometricForm() {
       />
       <path d="M120 45 L145 32 L145 52 L120 65 Z" fill="currentColor" fillOpacity="0.08" stroke="currentColor" strokeOpacity="0.15" strokeWidth="1" />
       <path d="M120 45 L120 65 L105 72 L105 52 Z" fill="currentColor" fillOpacity="0.05" stroke="currentColor" strokeOpacity="0.15" strokeWidth="1" />
-      <motion.path
+      <m.path
         d="M125 52 L138 45"
         stroke="#3B82F6"
         strokeOpacity="0.4"
@@ -63,7 +65,7 @@ function IsometricForm() {
         animate={{ pathLength: [0, 1, 1], opacity: [0, 1, 0] }}
         transition={{ duration: 2, repeat: Infinity, ease: "easeInOut", delay: 0.5 }}
       />
-      <motion.path
+      <m.path
         d="M125 58 L132 54"
         stroke="#3B82F6"
         strokeOpacity="0.3"
@@ -83,7 +85,7 @@ function IsometricEmbed() {
       <path d="M45 55 L100 27 L155 55 L100 83 Z" fill="currentColor" fillOpacity="0.06" stroke="currentColor" strokeOpacity="0.15" strokeWidth="1" />
       <path d="M45 55 L45 105 L100 133 L100 83 Z" fill="currentColor" fillOpacity="0.04" stroke="currentColor" strokeOpacity="0.15" strokeWidth="1" />
       <path d="M100 83 L100 133 L155 105 L155 55 Z" fill="currentColor" fillOpacity="0.03" stroke="currentColor" strokeOpacity="0.15" strokeWidth="1" />
-      <motion.path
+      <m.path
         d="M58 72 L78 62"
         stroke="#3B82F6"
         strokeOpacity="0.4"
@@ -94,7 +96,7 @@ function IsometricEmbed() {
       />
       <path d="M58 82 L88 67" stroke="currentColor" strokeOpacity="0.15" strokeWidth="2" strokeLinecap="round" />
       <path d="M58 92 L82 80" stroke="currentColor" strokeOpacity="0.15" strokeWidth="2" strokeLinecap="round" />
-      <motion.path
+      <m.path
         d="M58 102 L72 95"
         stroke="#10B981"
         strokeOpacity="0.4"
@@ -105,7 +107,7 @@ function IsometricEmbed() {
       />
       <path d="M115 65 L108 70 L115 75" stroke="#F59E0B" strokeOpacity="0.5" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
       <path d="M135 65 L142 70 L135 75" stroke="#F59E0B" strokeOpacity="0.5" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-      <motion.path
+      <m.path
         d="M125 35 L150 22 L150 42 L125 55 Z"
         fill="currentColor"
         fillOpacity="0.08"
@@ -115,7 +117,7 @@ function IsometricEmbed() {
         animate={{ y: [0, -3, 0] }}
         transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
       />
-      <motion.path
+      <m.path
         d="M125 35 L125 55 L110 62 L110 42 Z"
         fill="currentColor"
         fillOpacity="0.05"
@@ -125,7 +127,7 @@ function IsometricEmbed() {
         animate={{ y: [0, -3, 0] }}
         transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
       />
-      <motion.path
+      <m.path
         d="M130 45 L142 38"
         stroke="#3B82F6"
         strokeOpacity="0.4"
@@ -185,7 +187,7 @@ function StepCard({ step, index }: { step: typeof steps[0]; index: number }) {
   const Illustration = step.illustration;
 
   return (
-    <motion.div
+    <m.div
       style={{ rotateX, rotateY, transformStyle: "preserve-3d", perspective: 1000 }}
       onMouseMove={handleMouseMove}
       onMouseLeave={handleMouseLeave}
@@ -201,20 +203,20 @@ function StepCard({ step, index }: { step: typeof steps[0]; index: number }) {
             <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10 text-sm font-mono font-medium text-primary">
               {step.number}
             </div>
-            <motion.div
+            <m.div
               className="h-1.5 w-1.5 rounded-full bg-primary"
               animate={{ scale: [1, 1.5, 1], opacity: [0.4, 1, 0.4] }}
               transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
             />
           </div>
 
-          <motion.div
+          <m.div
             className="mb-6 flex justify-center"
             animate={{ y: [0, -4, 0] }}
             transition={{ duration: 4 + index, repeat: Infinity, ease: "easeInOut" }}
           >
             <Illustration />
-          </motion.div>
+          </m.div>
 
           <h3 className="text-lg font-semibold tracking-tight mb-2">
             {step.title}
@@ -224,7 +226,7 @@ function StepCard({ step, index }: { step: typeof steps[0]; index: number }) {
           </p>
         </CardContent>
       </Card>
-    </motion.div>
+    </m.div>
   );
 }
 

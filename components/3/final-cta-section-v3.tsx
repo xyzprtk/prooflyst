@@ -1,6 +1,6 @@
 "use client";
 
-import { motion } from "framer-motion";
+import { LazyMotion, m, domAnimation } from "motion/react";
 import { Button } from "@/components/ui/button";
 import { ArrowRight } from "lucide-react";
 import Link from "next/link";
@@ -8,6 +8,7 @@ import { FadeIn } from "./motion-utils";
 
 export function FinalCTASectionV3() {
   return (
+    <LazyMotion features={domAnimation}>
     <section className="py-40 relative">
       <div className="absolute inset-0 -z-10 bg-[linear-gradient(135deg,rgba(59,130,246,0.03)_0%,transparent_50%)]" />
 
@@ -25,7 +26,7 @@ export function FinalCTASectionV3() {
         </FadeIn>
 
         <FadeIn delay={0.2}>
-          <motion.div
+          <m.div
             whileHover={{ scale: 1.02 }}
             transition={{ duration: 0.2 }}
             className="inline-block"
@@ -33,12 +34,12 @@ export function FinalCTASectionV3() {
             <Button
               size="lg"
               className="rounded-full text-base px-8 h-11 mb-6"
-              render={<Link href="/dashboard/setup" />}
+              render={<Link href="/setup" />}
             >
               Start building your proof system
               <ArrowRight className="ml-2 h-4 w-4" />
             </Button>
-          </motion.div>
+          </m.div>
         </FadeIn>
 
         <FadeIn delay={0.3}>
@@ -55,5 +56,6 @@ export function FinalCTASectionV3() {
         </FadeIn>
       </div>
     </section>
+    </LazyMotion>
   );
 }

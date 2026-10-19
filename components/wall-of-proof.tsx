@@ -3,36 +3,42 @@ import { Card, CardContent } from "@/components/ui/card";
 
 const wallItems = [
   {
+    id: "item-1",
     content: "This completely changed how we handle customer feedback. Game changer.",
     author: "Sarah Chen",
     role: "Product Lead",
     company: "TechCorp",
   },
   {
+    id: "item-2",
     content: "Finally, a system that makes sense. No more scattered screenshots.",
     author: "Marcus Johnson",
     role: "Founder",
     company: "StartupXYZ",
   },
   {
+    id: "item-3",
     content: "The API is so clean. Took me 10 minutes to integrate.",
     author: "Alex Rivera",
     role: "Engineer",
     company: "DevStudio",
   },
   {
+    id: "item-4",
     content: "We use this for every product launch now. Essential tool.",
     author: "Emma Wilson",
     role: "Marketing Director",
     company: "GrowthCo",
   },
   {
+    id: "item-5",
     content: "Structured proof is 10x more valuable than random testimonials.",
     author: "David Park",
     role: "CEO",
     company: "ScaleUp",
   },
   {
+    id: "item-6",
     content: "Worth every penny. The organization features alone saved us hours.",
     author: "Lisa Thompson",
     role: "Operations",

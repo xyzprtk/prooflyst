@@ -54,7 +54,7 @@ const publicKey = `pl_pub_${randomString(32)}`;
 const adminKey = `pl_admin_${randomString(32)}`;
 const adminKeyHash = hashKey(adminKey);
 
-const now = Math.floor(Date.now() / 1000);
+const now = Date.now();
 
 await client.execute({
   sql: `
@@ -87,4 +87,4 @@ console.log(`Public Key:   ${publicKey}`);
 console.log(`Admin Key:    ${adminKey}`);
 console.log(`Hosted Form:  ${process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000"}/t/${slug}`);
 console.log(`Hosted Wall:  ${process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000"}/wall/${slug}`);
-console.log(`Dashboard:    ${process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000"}/dashboard/login`);
+console.log(`Dashboard:    ${process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000"}/login`);

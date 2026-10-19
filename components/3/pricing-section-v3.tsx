@@ -1,6 +1,6 @@
 "use client";
 
-import { motion } from "framer-motion";
+import { LazyMotion, m, domAnimation } from "motion/react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Check } from "lucide-react";
@@ -23,6 +23,7 @@ const proFeatures = [
 
 export function PricingSectionV3() {
   return (
+    <LazyMotion features={domAnimation}>
     <section id="pricing" className="py-32">
       <div className="mx-auto max-w-7xl px-6">
         <FadeIn className="text-center max-w-2xl mx-auto mb-20">
@@ -36,7 +37,7 @@ export function PricingSectionV3() {
 
         <StaggerContainer className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto" staggerDelay={0.12}>
           <StaggerItem>
-            <motion.div whileHover={{ y: -2 }} transition={{ duration: 0.2 }}>
+            <m.div whileHover={{ y: -2 }} transition={{ duration: 0.2 }}>
               <Card className="border-border/60 relative overflow-hidden rounded-xl h-full">
                 <CardContent className="p-8">
                   <div className="mb-4">
@@ -60,11 +61,11 @@ export function PricingSectionV3() {
                   </Button>
                 </CardContent>
               </Card>
-            </motion.div>
+            </m.div>
           </StaggerItem>
 
           <StaggerItem>
-            <motion.div whileHover={{ y: -2 }} transition={{ duration: 0.2 }}>
+            <m.div whileHover={{ y: -2 }} transition={{ duration: 0.2 }}>
               <Card className="border-primary/30 relative overflow-hidden rounded-xl h-full">
                 <div className="absolute top-0 right-0 bg-primary text-primary-foreground text-xs font-medium px-3 py-1 rounded-bl-lg">
                   Popular
@@ -91,10 +92,11 @@ export function PricingSectionV3() {
                   </Button>
                 </CardContent>
               </Card>
-            </motion.div>
+            </m.div>
           </StaggerItem>
         </StaggerContainer>
       </div>
     </section>
+    </LazyMotion>
   );
 }

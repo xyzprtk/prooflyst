@@ -1,6 +1,6 @@
 "use client";
 
-import { motion } from "framer-motion";
+import { m } from "motion/react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Check } from "lucide-react";
@@ -36,7 +36,7 @@ export function PricingSection() {
 
         <StaggerContainer className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto" staggerDelay={0.12}>
           <StaggerItem>
-            <motion.div whileHover={{ y: -2 }} transition={{ duration: 0.2 }}>
+            <m.div whileHover={{ y: -2 }} transition={{ duration: 0.2 }}>
               <Card className="border-border/60 relative overflow-hidden rounded-xl h-full">
                 <CardContent className="p-8">
                   <div className="mb-4">
@@ -60,11 +60,11 @@ export function PricingSection() {
                   </Button>
                 </CardContent>
               </Card>
-            </motion.div>
+            </m.div>
           </StaggerItem>
 
           <StaggerItem>
-            <motion.div whileHover={{ y: -2 }} transition={{ duration: 0.2 }}>
+            <m.div whileHover={{ y: -2 }} transition={{ duration: 0.2 }}>
               <Card className="border-primary/30 relative overflow-hidden rounded-xl h-full">
                 <div className="absolute top-0 right-0 bg-primary text-primary-foreground text-xs font-medium px-3 py-1 rounded-bl-lg">
                   Popular
@@ -91,7 +91,7 @@ export function PricingSection() {
                   </Button>
                 </CardContent>
               </Card>
-            </motion.div>
+            </m.div>
           </StaggerItem>
         </StaggerContainer>
       </div>

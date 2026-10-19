@@ -39,7 +39,7 @@ export function Footer() {
               <li><Link href="#features" className="text-muted-foreground hover:text-foreground transition-colors">Features</Link></li>
               <li><Link href="#api" className="text-muted-foreground hover:text-foreground transition-colors">API</Link></li>
               <li><Link href="#pricing" className="text-muted-foreground hover:text-foreground transition-colors">Pricing</Link></li>
-              <li><Link href="/dashboard/setup" className="text-muted-foreground hover:text-foreground transition-colors">Get Started</Link></li>
+              <li><Link href="/setup" className="text-muted-foreground hover:text-foreground transition-colors">Get Started</Link></li>
             </ul>
           </div>
           

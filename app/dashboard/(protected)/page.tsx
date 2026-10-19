@@ -5,7 +5,6 @@ import { sites, testimonials } from "@/lib/db/schema";
 import { getAdminKey } from "@/lib/session";
 import { hashKey } from "@/lib/keys";
 import { withRetry } from "@/lib/retry";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { StatsCards } from "@/components/dashboard/stats-cards";
 import { SiteOverview } from "@/components/dashboard/site-overview";
 import { TestimonialsTable } from "@/components/dashboard/testimonials-table";
@@ -13,31 +12,22 @@ import { TestimonialsTable } from "@/components/dashboard/testimonials-table";
 export default async function DashboardPage() {
   const adminKey = await getAdminKey();
   if (!adminKey) {
-    redirect("/dashboard/login");
+    redirect("/login");
   }
 
   const adminHash = hashKey(adminKey);
 
   const site = await withRetry(async () => {
-    const [result] = await db
-      .select()
-      .from(sites)
-      .where(eq(sites.adminKey, adminHash))
-      .limit(1);
+    const [result] = await db.select().from(sites).where(eq(sites.adminKey, adminHash)).limit(1);
     return result;
   });
 
   if (!site) {
-    redirect("/dashboard/setup");
+    redirect("/setup");
   }
 
   const rows = await withRetry(async () => {
-    return db
-      .select()
-      .from(testimonials)
-      .where(eq(testimonials.siteId, site.id))
-      .orderBy(desc(testimonials.createdAt))
-      .limit(100);
+    return db.select().from(testimonials).where(eq(testimonials.siteId, site.id)).orderBy(desc(testimonials.createdAt)).limit(100);
   });
 
   const stats = {
@@ -60,14 +50,10 @@ export default async function DashboardPage() {
 
       <StatsCards total={stats.total} pending={stats.pending} approved={stats.approved} deleted={stats.deleted} />
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Site Overview</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <SiteOverview site={site} appUrl={appUrl} />
-        </CardContent>
-      </Card>
+      <div className="rounded-2xl border border-border/50 bg-card shadow-sm p-5">
+        <h2 className="text-lg font-semibold tracking-tight mb-4">Site Overview</h2>
+        <SiteOverview site={site} appUrl={appUrl} />
+      </div>
 
       <TestimonialsTable testimonials={rows} />
     </div>

@@ -1,6 +1,6 @@
 "use client";
 
-import { motion } from "framer-motion";
+import { m } from "motion/react";
 import { ReactNode } from "react";
 
 interface FadeInProps {
@@ -25,7 +25,7 @@ export function FadeIn({
   };
 
   return (
-    <motion.div
+    <m.div
       initial={{ opacity: 0, ...directions[direction] }}
       whileInView={{ opacity: 1, x: 0, y: 0 }}
       viewport={{ once: true, margin: "-80px" }}
@@ -37,7 +37,7 @@ export function FadeIn({
       className={className}
     >
       {children}
-    </motion.div>
+    </m.div>
   );
 }
 
@@ -51,7 +51,7 @@ export function StaggerContainer({
   staggerDelay?: number;
 }) {
   return (
-    <motion.div
+    <m.div
       initial="hidden"
       whileInView="visible"
       viewport={{ once: true, margin: "-60px" }}
@@ -66,7 +66,7 @@ export function StaggerContainer({
       className={className}
     >
       {children}
-    </motion.div>
+    </m.div>
   );
 }
 
@@ -78,7 +78,7 @@ export function StaggerItem({
   className?: string;
 }) {
   return (
-    <motion.div
+    <m.div
       variants={{
         hidden: { opacity: 0, y: 16 },
         visible: {
@@ -90,7 +90,7 @@ export function StaggerItem({
       className={className}
     >
       {children}
-    </motion.div>
+    </m.div>
   );
 }
 
@@ -106,27 +106,27 @@ export function TypewriterText({
   speed?: number;
 }) {
   return (
-    <motion.span
+    <m.span
       className={className}
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ delay, duration: 0.1 }}
     >
       {text.split("").map((char, i) => (
-        <motion.span
-          key={i}
+        <m.span
+          key={`${char}-${i}`}
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: delay + i * speed / 1000, duration: 0.01 }}
         >
           {char}
-        </motion.span>
+        </m.span>
       ))}
-      <motion.span
+      <m.span
         className="inline-block w-[2px] h-[1em] bg-primary ml-0.5 align-middle"
         animate={{ opacity: [1, 0] }}
         transition={{ duration: 0.8, repeat: Infinity, ease: "linear" }}
       />
-    </motion.span>
+    </m.span>
   );
 }

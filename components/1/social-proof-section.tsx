@@ -3,14 +3,17 @@ import Link from "next/link";
 
 const testimonials = [
   {
+    id: "testimonial-1",
     quote: "This space is reserved for our very first user. Will it be you?",
     author: "The Prooflyst Team",
   },
   {
+    id: "testimonial-2",
     quote: "Imagine your best customer saying something amazing about your product right here.",
     author: "Future You",
   },
   {
+    id: "testimonial-3",
     quote: "We built this because collecting feedback shouldn't require a messy spreadsheet.",
     author: "The Prooflyst Team",
   },
@@ -30,9 +33,9 @@ export function SocialProofSection() {
         </div>
 
         <div className="grid md:grid-cols-3 gap-6 mb-12">
-          {testimonials.map((testimonial, index) => (
+          {testimonials.map((testimonial) => (
             <div
-              key={index}
+              key={testimonial.id}
               className="relative p-6 rounded-2xl border border-border bg-muted/20 hover:bg-muted/30 transition-colors"
             >
               <div className="text-4xl text-primary/20 absolute top-4 right-4 font-serif">
@@ -49,7 +52,7 @@ export function SocialProofSection() {
         </div>
 
         <div className="text-center">
-          <Button size="lg" className="rounded-full text-base px-8 h-11" render={<Link href="/dashboard/setup" />}>
+          <Button size="lg" className="rounded-full text-base px-8 h-11" render={<Link href="/setup" />}>
             This could be yours
           </Button>
         </div>
