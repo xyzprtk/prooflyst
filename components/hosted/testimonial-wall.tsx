@@ -179,7 +179,6 @@ export function TestimonialWall({
 
   if (totalCount === 0) {
     return (
-      <LazyMotion features={domAnimation}>
       <div className="min-h-screen flex flex-col">
         <WallHeader
           siteName={siteName}
@@ -224,11 +223,11 @@ export function TestimonialWall({
         </div>
         <WallFooter />
       </div>
-      </LazyMotion>
     );
   }
 
   return (
+    <LazyMotion features={domAnimation}>
     <div className="min-h-screen flex flex-col">
       <WallHeader
         siteName={siteName}
@@ -321,5 +320,6 @@ export function TestimonialWall({
 
       <WallFooter />
     </div>
+    </LazyMotion>
   );
 }

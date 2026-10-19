@@ -108,7 +108,7 @@ describe("security", () => {
         { headers: { Authorization: "Basic bad-auth" } }
       );
 
-      const response = await testimonialGet(request as any);
+      const response = await testimonialGet(request);
       expect(response.status).toBe(401);
     });
 

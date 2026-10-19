@@ -80,7 +80,7 @@ describe("api / testimonials", () => {
         { headers: { Authorization: `Bearer ${rawAdminKey}` } }
       );
 
-      const response = await testimonialGet(request as any);
+      const response = await testimonialGet(request);
       expect(response.status).toBe(200);
 
       const data = await response.json();
@@ -98,7 +98,7 @@ describe("api / testimonials", () => {
         { headers: { Authorization: `Bearer ${rawAdminKey}` } }
       );
 
-      const response = await testimonialGet(request as any);
+      const response = await testimonialGet(request);
       const data = await response.json();
       expect(data.testimonials.length).toBe(1);
       expect(data.testimonials[0].status).toBe("approved");
@@ -110,7 +110,7 @@ describe("api / testimonials", () => {
         `http://localhost/api/v1/testimonials?site_id=${site.id}`
       );
 
-      const response = await testimonialGet(request as any);
+      const response = await testimonialGet(request);
       expect(response.status).toBe(401);
     });
   });
@@ -126,7 +126,7 @@ describe("api / testimonials", () => {
         `http://localhost/api/v1/public/testimonials/${site.id}`
       );
 
-      const response = await publicGet(request as any, { params: Promise.resolve({ siteId: site.id }) });
+      const response = await publicGet(request, { params: Promise.resolve({ siteId: site.id }) });
 
       expect(response.status).toBe(200);
       const data = await response.json();

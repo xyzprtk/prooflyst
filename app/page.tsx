@@ -11,7 +11,7 @@ import { Navbar } from "@/components/landing/navbar";
 import { HeroSection } from "@/components/landing/hero";
 import { PainSection } from "@/components/landing/pain-section";
 import { SectionDivider } from "@/components/landing/section-divider";
-import { HowItWorksSection } from "@/components/landing/how-it-works";
+import { HowItWorksSectionDark } from "@/components/landing/how-it-works-dark";
 import { WallOfProofSection } from "@/components/landing/wall-of-proof";
 import { CodePreviewSection } from "@/components/landing/code-preview";
 import { WhyProoflystSection } from "@/components/landing/why-prooflyst";
@@ -28,9 +28,7 @@ export default function LandingPage() {
         <HeroSection />
         <SectionDivider />
         <PainSection />
-        <SectionDivider />
-        <HowItWorksSection />
-        <SectionDivider />
+        <HowItWorksSectionDark />
         <WallOfProofSection />
         <SectionDivider />
         <CodePreviewSection />
